@@ -50,23 +50,26 @@ class Assignment_Three_Scene extends Scene_Component
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
         if (this.right) {
-            this.position = this.position.times(Mat4.translation([(2 * this.right_val * (-1 + (2 * (Math.floor(this.right_count) % 2) ) ) ), (2 * !this.right_val * (-1 + (2 * (Math.floor(this.right_count) % 2) ) ) ), 0]))
+            this.position = this.position.times(Mat4.translation([(2 * this.right_val * (-1 + (2 * (Math.floor(Math.abs(this.right_count)) % 2) ) ) ), (2 * !this.right_val * (-1 + (2 * (Math.abs(Math.floor(this.right_count)) % 2) ) ) ), 0]))
                                          .times(Mat4.rotation(Math.PI/2, Vec.of(0,0,-1)));
+            console.log(2 * !this.right_val * (-1 + (2 * (Math.floor(Math.abs(this.right_count)) % 2) ) ) );
             this.right = false;
             this.right_val = !this.right_val;
             this.right_count += 0.5;
-            //this.left_val *= -1;
+            this.left_val = !this.left_val;
+            this.left_count -= 0.5;
         }
         if (this.left) {
             this.position = this.position.times(Mat4.scale([-1,1,1]));
-            this.position = this.position.times(Mat4.translation([(2 * this.left_val * (-1 + (2 * (Math.floor(this.left_count) % 2) ) ) ), (2 * !this.left_val * (-1 + (2 * (Math.floor(this.left_count) % 2) ) ) ), 0]))
+            this.position = this.position.times(Mat4.translation([(2 * this.left_val * (-1 + (2 * (Math.floor(Math.abs(this.left_count)) % 2) ) ) ), (2 * !this.left_val * (-1 + (2 * Math.abs((Math.floor(this.left_count) % 2)) ) ) ), 0]))
                                          .times(Mat4.rotation(Math.PI/2, Vec.of(0,0,-1)));
             this.position = this.position.times(Mat4.scale([-1,1,1]));
 
             this.left = false;
             this.left_val = !this.left_val;
             this.left_count += 0.5;
-            //this.right_val *= -1;
+            this.right_val = !this.right_val;
+            this.right_count -= 0.5;
         }
         this.shapes.box.draw(graphics_state, this.position, this.materials.bab);
         this.shapes.axis.draw(graphics_state, this.position, this.materials.phong);
