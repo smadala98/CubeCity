@@ -31,13 +31,13 @@ class Assignment_Three_Scene extends Scene_Component
         this.lights = [ new Light( Vec.of( -5,5,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
         // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
-        this.right = false;
-        this.right_val = 1;
-        this.right_count = 1;
+        this.right = false; // Flag used to indicate right movement needs to occur.
+        this.right_val = 1; // Flag used for determining if axes are translated in x or y direction, since rotated cube has different basis.
+        this.right_count = 1; // Count used flipping the translation of the basis,.
         this.left = false;
         this.left_val = 1;
         this.left_count = 1;
-        this.position = Mat4.identity();
+        this.position = Mat4.identity(); // Holds the current transformation matrix of shape.
         this.cur_val = 0;
       }
     make_control_panel()
@@ -50,9 +50,13 @@ class Assignment_Three_Scene extends Scene_Component
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
         if (this.right) {
+        	// When cube is oriented right side up or up side down, the translation occurs in the x direction, otherwise in the y direction, determined by value of this.right_val.
+        	// When cube is oriented with x or y positive axis pointing to the original negative basis axes, flip the value so that the translation occurs in the right direction.
+        	// This is determined by the value of this.right_count, and this sign switch occurs every two rotations, thanks to the modulo and floor and abs operation..
             this.position = this.position.times(Mat4.translation([(2 * this.right_val * (-1 + (2 * (Math.floor(Math.abs(this.right_count)) % 2) ) ) ), (2 * !this.right_val * (-1 + (2 * (Math.abs(Math.floor(this.right_count)) % 2) ) ) ), 0]))
                                          .times(Mat4.rotation(Math.PI/2, Vec.of(0,0,-1)));
-            console.log(2 * !this.right_val * (-1 + (2 * (Math.floor(Math.abs(this.right_count)) % 2) ) ) );
+            // Below values need to be changed correspondingly, since the above transformation changed the current basis, so the next rotation, regardless of right or left, must
+            // properly deal with this change.
             this.right = false;
             this.right_val = !this.right_val;
             this.right_count += 0.5;
@@ -60,9 +64,11 @@ class Assignment_Three_Scene extends Scene_Component
             this.left_count -= 0.5;
         }
         if (this.left) {
+        	// Use the same logic as right, but flip the x axis, since we want to move in the opposite direction.
             this.position = this.position.times(Mat4.scale([-1,1,1]));
             this.position = this.position.times(Mat4.translation([(2 * this.left_val * (-1 + (2 * (Math.floor(Math.abs(this.left_count)) % 2) ) ) ), (2 * !this.left_val * (-1 + (2 * Math.abs((Math.floor(this.left_count) % 2)) ) ) ), 0]))
                                          .times(Mat4.rotation(Math.PI/2, Vec.of(0,0,-1)));
+            // Scale back so that our cube isn't stuck flipped.
             this.position = this.position.times(Mat4.scale([-1,1,1]));
 
             this.left = false;
@@ -78,7 +84,6 @@ class Assignment_Three_Scene extends Scene_Component
   }
 
 class Texture_Scroll_X extends Phong_Shader
-{ fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
     {
       // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #6.
       return `
