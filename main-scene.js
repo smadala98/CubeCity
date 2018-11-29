@@ -151,6 +151,7 @@ class Assignment_Three_Scene extends Scene_Component
       { graphics_state.lights = this.lights;
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 //         this.shapes.rect_prism.draw(graphics_state, this.position, this.materials.boldandbrash);
+        // Draw a floor by using multiple cubes. TODO: create an outline for each cube, see assignment 1.
         let model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.translation([-10,-2,-10]));
         for (var i = 0; i < 10; i++) {
