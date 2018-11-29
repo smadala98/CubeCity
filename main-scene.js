@@ -1,7 +1,7 @@
 window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
 class Assignment_Three_Scene extends Scene_Component
-  { constructor( context, control_box )     // The scene begins by requesting the camera, shapes, and materials it will need.
-      { super(   context, control_box );    // First, include a secondary Scene that provides movement controls:
+  { constructor( context, control_box )
+      { super(   context, control_box );
         if( !context.globals.has_controls   ) 
           context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
@@ -10,31 +10,32 @@ class Assignment_Three_Scene extends Scene_Component
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
-        // TODO:  Create two cubes, including one with the default texture coordinates (from 0 to 1), and one with the modified
-        //        texture coordinates as required for cube #2.  You can either do this by modifying the cube code or by modifying
-        //        a cube instance's texture_coords after it is already created.
         const shapes = { box:   new Cube(),
                          box_2: new ZoomCube(),
-                         axis:  new Axis_Arrows()
+                         axis:  new Axis_Arrows(),
+                         rect_prism: new Prism(),
                        }
         this.submit_shapes( context, shapes );
 
-        // TODO:  Create the materials required to texture both cubes with the correct images and settings.
-        //        Make each Material from the correct shader.  Phong_Shader will work initially, but when 
-        //        you get to requirements 6 and 7 you will need different ones.
         this.materials =
           { phong:  context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) ),
-            bab: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", false) }),
-            arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", false) })
-//             terio: context.get_instance( Texture_Scroll_X ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/terio.png", true)})
+            boldandbrash: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", false) }),
+            brashandbold: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", false) }),
+            arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", false) }),
+            ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5})
           }
 
-        this.lights = [ new Light( Vec.of( -5,5,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
+        this.lights = [ new Light( Vec.of(-5,5,5,1 ), Color.of( 0.5,1,1,1 ), 100000 ) ];
 
-        // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
         this.position = Mat4.identity(); // Holds the current transformation matrix of shape.
         this.cur_val = 0;
         this.cur_position = "a";
+        this.coords1 = [0,0,0];
+
+        this.position2 = this.position.times(Mat4.translation([0,0,-6]));
+        this.cur_val2 = 0;
+        this.cur_position2 = 'a';
+        this.coords2 = [0,0,-6];
         // Dictionary containing the next orientation of the cube, index into the string where 0 = right, 1 = left, 2 = up, 3 = down, will give you the next orientation.
         this.next_positions_dict = {
               'a': "dbjp",
@@ -90,86 +91,88 @@ class Assignment_Three_Scene extends Scene_Component
               'x': [[0,0,-2],[0,0,2],[0,-2,0],[0,2,0]],              
         };
       }
-      // TODO: Make this into a callable function to replace the stuff inside the control panel. For some reason, get some syntax error. 
-//     change_position( is_lateral, sign, index) {
-//           if (index < 2) {
-//                 let rotation_x = -1 * (this.cur_position === 'i' || this.cur_position === 'm' || this.cur_position === 'q' || this.cur_position === 'u') + 
-//                                       (this.cur_position === 'k' || this.cur_position === 'o' || this.cur_position === 's' || this.cur_position === 'w');
-//                 let rotation_y = -1 * (this.cur_position === 'l' || this.cur_position === 'p' || this.cur_position === 't' || this.cur_position === 'x') + 
-//                                       (this.cur_position === 'j' || this.cur_position === 'n' || this.cur_position === 'r' || this.cur_position === 'v');              
-//                 let rotation_z = -1 * (this.cur_position === 'a' || this.cur_position === 'b' || this.cur_position === 'c' || this.cur_position === 'd') + 
-//                                       (this.cur_position === 'e' || this.cur_position === 'f' || this.cur_position === 'g' || this.cur_position === 'h');  
-//           } else {
-//                 let rotation_x = -1 * (this.cur_position === 'a' || this.cur_position === 'g' || this.cur_position === 'j' || this.cur_position === 'p') + 
-//                                       (this.cur_position === 'c' || this.cur_position === 'e' || this.cur_position === 'l' || this.cur_position === 'n');
-//                 let rotation_y = -1 * (this.cur_position === 'd' || this.cur_position === 'f' || this.cur_position === 'i' || this.cur_position === 'o') + 
-//                                       (this.cur_position === 'b' || this.cur_position === 'h' || this.cur_position === 'k' || this.cur_position === 'm');              
-//                 let rotation_z = -1 * (this.cur_position === 'q' || this.cur_position === 'r' || this.cur_position === 's' || this.cur_position === 't') + 
-//                                       (this.cur_position === 'u' || this.cur_position === 'v' || this.cur_position === 'w' || this.cur_position === 'x');
-//           }
-//           this.position = this.position.times(Mat4.translation(this.translations_dict[this.cur_position][index]))
-//                                        .times(Mat4.rotation(is_positive * Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
-//           this.cur_position = this.next_positions_dict[this.cur_position][index];
-//     }
+    change_position( is_lateral, sign, index, cube_index) {
+          let cur_pos = cube_index ? this.cur_position2 : this.cur_position;
+          let pos = cube_index ? this.position2 : this.position;
+          let rotation_x = -1 * (cur_pos === 'i' || cur_pos === 'm' || cur_pos === 'q' || cur_pos === 'u') + 
+                                (cur_pos === 'k' || cur_pos === 'o' || cur_pos === 's' || cur_pos === 'w');
+          let rotation_y = -1 * (cur_pos === 'l' || cur_pos === 'p' || cur_pos === 't' || cur_pos === 'x') + 
+                                (cur_pos === 'j' || cur_pos === 'n' || cur_pos === 'r' || cur_pos === 'v');              
+          let rotation_z = -1 * (cur_pos === 'a' || cur_pos === 'b' || cur_pos === 'c' || cur_pos === 'd') + 
+                                (cur_pos === 'e' || cur_pos === 'f' || cur_pos === 'g' || cur_pos === 'h');  
+          if (index >= 2) {
+                rotation_x = -1 * (cur_pos === 'a' || cur_pos === 'g' || cur_pos === 'j' || cur_pos === 'p') + 
+                                  (cur_pos === 'c' || cur_pos === 'e' || cur_pos === 'l' || cur_pos === 'n');
+                rotation_y = -1 * (cur_pos === 'd' || cur_pos === 'f' || cur_pos === 'i' || cur_pos === 'o') + 
+                                  (cur_pos === 'b' || cur_pos === 'h' || cur_pos === 'k' || cur_pos === 'm');              
+                rotation_z = -1 * (cur_pos === 'q' || cur_pos === 'r' || cur_pos === 's' || cur_pos === 't') + 
+                                  (cur_pos === 'u' || cur_pos === 'v' || cur_pos === 'w' || cur_pos === 'x');
+          }
+          pos = pos.times(Mat4.translation(this.translations_dict[cur_pos][index]))
+                   .times(Mat4.rotation(sign * Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
+          cur_pos = this.next_positions_dict[cur_pos][index];
+          if (!cube_index) {
+                this.cur_position = cur_pos;
+                this.position = pos;
+          } else {
+                this.cur_position2 = cur_pos;
+                this.position2 = pos;
+          }
+    }
     make_control_panel()
       {
-        this.key_triggered_button( "Right",  [ "d" ], () => {
-//               change_position(1, 1, 0);
-              this.position = this.position.times(Mat4.translation(this.translations_dict[this.cur_position][0]));
-              // Chooses axis to rotate along based on current position.
-              let rotation_x = -1 * (this.cur_position === 'i' || this.cur_position === 'm' || this.cur_position === 'q' || this.cur_position === 'u') + 
-                                    (this.cur_position === 'k' || this.cur_position === 'o' || this.cur_position === 's' || this.cur_position === 'w');
-              let rotation_y = -1 * (this.cur_position === 'l' || this.cur_position === 'p' || this.cur_position === 't' || this.cur_position === 'x') + 
-                                    (this.cur_position === 'j' || this.cur_position === 'n' || this.cur_position === 'r' || this.cur_position === 'v');              
-              let rotation_z = -1 * (this.cur_position === 'a' || this.cur_position === 'b' || this.cur_position === 'c' || this.cur_position === 'd') + 
-                                    (this.cur_position === 'e' || this.cur_position === 'f' || this.cur_position === 'g' || this.cur_position === 'h');
-              this.position = this.position.times(Mat4.rotation(Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
-              this.cur_position = this.next_positions_dict[this.cur_position][0];
-              });
-        this.key_triggered_button( "Left", [ "a" ], () => {
-//               change_position(1, -1, 1);
-              this.position = this.position.times(Mat4.translation(this.translations_dict[this.cur_position][1]));
-              let rotation_x = -1 * (this.cur_position === 'i' || this.cur_position === 'm' || this.cur_position === 'q' || this.cur_position === 'u') + 
-                                    (this.cur_position === 'k' || this.cur_position === 'o' || this.cur_position === 's' || this.cur_position === 'w');
-              let rotation_y = -1 * (this.cur_position === 'l' || this.cur_position === 'p' || this.cur_position === 't' || this.cur_position === 'x') + 
-                                    (this.cur_position === 'j' || this.cur_position === 'n' || this.cur_position === 'r' || this.cur_position === 'v');              
-              let rotation_z = -1 * (this.cur_position === 'a' || this.cur_position === 'b' || this.cur_position === 'c' || this.cur_position === 'd') + 
-                                    (this.cur_position === 'e' || this.cur_position === 'f' || this.cur_position === 'g' || this.cur_position === 'h');
-              this.position = this.position.times(Mat4.rotation(-Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
-              this.cur_position = this.next_positions_dict[this.cur_position][1];
-        });
+        this.control_panel.innerHTML += "Player One Controls";
+        this.new_line();
+        this.key_triggered_button( "Right",  [ "d" ], () => { this.change_position(1, 1, 0, 0); });
+        this.key_triggered_button( "Left", [ "a" ], () => { this.change_position(1, -1, 1, 0); });
         this.key_triggered_button( "Up", [ "w" ], () => {
-//               change_position(0, 1, 2);
-              this.position = this.position.times(Mat4.translation(this.translations_dict[this.cur_position][2]));
-              let rotation_x = -1 * (this.cur_position === 'a' || this.cur_position === 'g' || this.cur_position === 'j' || this.cur_position === 'p') + 
-                                    (this.cur_position === 'c' || this.cur_position === 'e' || this.cur_position === 'l' || this.cur_position === 'n');
-              let rotation_y = -1 * (this.cur_position === 'd' || this.cur_position === 'f' || this.cur_position === 'i' || this.cur_position === 'o') + 
-                                    (this.cur_position === 'b' || this.cur_position === 'h' || this.cur_position === 'k' || this.cur_position === 'm');              
-              let rotation_z = -1 * (this.cur_position === 'q' || this.cur_position === 'r' || this.cur_position === 's' || this.cur_position === 't') + 
-                                    (this.cur_position === 'u' || this.cur_position === 'v' || this.cur_position === 'w' || this.cur_position === 'x');
-              this.position = this.position.times(Mat4.rotation(Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
-              this.cur_position = this.next_positions_dict[this.cur_position][2];
+              this.change_position(0, 1, 2, 0);
+              this.coords1[2] -= 2;
         });
         this.key_triggered_button("Down", [ "s" ], () => {
-//               change_position(0, -1, 3);
-              this.position = this.position.times(Mat4.translation(this.translations_dict[this.cur_position][3]));
-              let rotation_x = -1 * (this.cur_position === 'a' || this.cur_position === 'g' || this.cur_position === 'j' || this.cur_position === 'p') + 
-                                    (this.cur_position === 'c' || this.cur_position === 'e' || this.cur_position === 'l' || this.cur_position === 'n');
-              let rotation_y = -1 * (this.cur_position === 'd' || this.cur_position === 'f' || this.cur_position === 'i' || this.cur_position === 'o') + 
-                                    (this.cur_position === 'b' || this.cur_position === 'h' || this.cur_position === 'k' || this.cur_position === 'm');              
-              let rotation_z = -1 * (this.cur_position === 'q' || this.cur_position === 'r' || this.cur_position === 's' || this.cur_position === 't') + 
-                                    (this.cur_position === 'u' || this.cur_position === 'v' || this.cur_position === 'w' || this.cur_position === 'x');
-              this.position = this.position.times(Mat4.rotation(-Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
-              this.cur_position = this.next_positions_dict[this.cur_position][3];
-        })
+              this.change_position(0, -1, 3, 0);
+              this.coords1[2] += 2;
+        });
+        this.new_line();
+        this.control_panel.innerHTML += "Player Two Controls";
+        this.new_line();
+        this.key_triggered_button( "Right",  [ "l" ], () => { this.change_position(1, 1, 0, 1); });
+        this.key_triggered_button( "Left", [ "j" ], () => { this.change_position(1, -1, 1, 1); });
+        this.key_triggered_button( "Up", [ "i" ], () => {
+              this.change_position(0, 1, 2, 1);
+              this.coords2[2] -= 2;
+        });
+        this.key_triggered_button("Down", [ "k" ], () => {
+              this.change_position(0, -1, 3, 1);
+              this.coords2[2] += 2;
+        });
       }
     display( graphics_state )
-      { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+      { graphics_state.lights = this.lights;
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
-        this.shapes.box.draw(graphics_state, this.position, this.materials.bab);
-        this.shapes.axis.draw(graphics_state, this.position, this.materials.arrow);
-
+//         this.shapes.rect_prism.draw(graphics_state, this.position, this.materials.boldandbrash);
+        let model_transform = Mat4.identity();
+        model_transform = model_transform.times(Mat4.translation([-10,-2,-10]));
+        for (var i = 0; i < 10; i++) {
+              model_transform = model_transform.times(Mat4.translation([0,0,2]));
+              for (var j = 0; j < 10; j++) {
+                    model_transform = model_transform.times(Mat4.translation([2,0,0]));
+                    this.shapes.box.draw(graphics_state, model_transform, this.materials.ground);
+              }
+              model_transform = model_transform.times(Mat4.translation([-20,0,0]));
+        }
+        // Change order in which cubes are drawn to have accurate transparency, based of z value of cube coordinates.
+        if (this.coords2[2] > this.coords1[2]) {
+            this.shapes.box.draw(graphics_state, this.position, this.materials.boldandbrash);
+            this.shapes.axis.draw(graphics_state, this.position, this.materials.arrow);
+            this.shapes.box.draw(graphics_state, this.position2, this.materials.brashandbold);
+            this.shapes.axis.draw(graphics_state, this.position2, this.materials.arrow);
+        } else {
+            this.shapes.box.draw(graphics_state, this.position2, this.materials.brashandbold);
+            this.shapes.axis.draw(graphics_state, this.position2, this.materials.arrow);
+            this.shapes.box.draw(graphics_state, this.position, this.materials.boldandbrash);
+            this.shapes.axis.draw(graphics_state, this.position, this.materials.arrow);
+        }
       }
   }
 

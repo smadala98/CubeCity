@@ -43,6 +43,19 @@ class ZoomSquare extends Shape              // A square, demonstrating two trian
     }
 }
 
+window.Rectangle = window.classes.Square =
+class Rectangle extends Shape              // A square, demonstrating two triangles that share vertices.  On any planar surface, the interior 
+                                        // edges don't make any important seams.  In these cases there's no reason not to re-use data of
+{                                       // the common vertices between triangles.  This makes all the vertex arrays (position, normals, 
+  constructor()                         // etc) smaller and more cache friendly.
+    { super( "positions", "normals", "texture_coords" );                                   // Name the values we'll define per each vertex.
+      this.positions     .push( ...Vec.cast( [-2,-1,0], [2,-1,0], [-2,1,0], [2,1,0] ) );   // Specify the 4 square corner locations.
+      this.normals       .push( ...Vec.cast( [0,0,1],   [0,0,1],  [0,0,1],  [0,0,1] ) );   // Match those up with normal vectors.
+      this.texture_coords.push( ...Vec.cast( [0,0],     [1,0],    [0,1],    [1,1]   ) );   // Draw a square in texture coordinates too.
+      this.indices       .push( 0, 1, 2,     1, 3, 2 );                   // Two triangles this time, indexing into four distinct vertices.
+    }
+}
+
 
 window.Tetrahedron = window.classes.Tetrahedron =
 class Tetrahedron extends Shape                       // The Tetrahedron shape demonstrates flat vs smooth shading (a boolean argument 
@@ -128,6 +141,31 @@ class SubCube extends Shape    // A cube inserts six square strips into its arra
           ZoomSquare.insert_transformed_copy_into( this, [], square_transform );
         }
     }
+}
+
+// Prism for when the cubes are joined.
+window.Prism = window.classes.Prism =
+class Prism extends Shape
+{ constructor()
+      { super( "positions", "normals" ); // Name the values we'll define per each vertex.  They'll have positions and normals.
+
+        // First, specify the vertex positions -- just a bunch of points that exist at the corners of an imaginary cube.
+        this.positions.push( ...Vec.cast( [-2,-1,-1], [2,-1,-1], [-2,-1,1], [2,-1,1], [2,1,-1],  [-2,1,-1],  [2,1,1],  [-2,1,1],
+                                          [-2,-1,-1], [-2,-1,1], [-2,1,-1], [-2,1,1], [2,-1,1],  [2,-1,-1],  [2,1,1],  [2,1,-1],
+                                          [-2,-1,1],  [2,-1,1],  [-2,1,1],  [2,1,1], [2,-1,-1], [-2,-1,-1], [2,1,-1], [-2,1,-1] ) );
+        // Supply vectors that point away from eace face of the cube.  They should match up with the points in the above list
+        // Normal vectors are needed so the graphics engine can know if the shape is pointed at light or not, and color it accordingly.
+        this.normals.push(   ...Vec.cast( [0,-1,0], [0,-1,0], [0,-1,0], [0,-1,0], [0,1,0], [0,1,0], [0,1,0], [0,1,0], [-1,0,0], [-1,0,0],
+                                          [-1,0,0], [-1,0,0], [1,0,0],  [1,0,0],  [1,0,0], [1,0,0], [0,0,1], [0,0,1], [0,0,1],   [0,0,1],
+                                          [0,0,-1], [0,0,-1], [0,0,-1], [0,0,-1] ) );
+
+                 // Those two lists, positions and normals, fully describe the "vertices".  What's the "i"th vertex?  Simply the combined
+                 // data you get if you look up index "i" of both lists above -- a position and a normal vector, together.  Now let's
+                 // tell it how to connect vertex entries into triangles.  Every three indices in this list makes one triangle:
+        this.indices.push( 0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
+                          14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22 );
+        // It stinks to manage arrays this big.  Later we'll show code that generates these same cube vertices more automatically.
+      }
 }
 
 window.Line_Segment_Array = window.classes.Line_Segment_Array =
@@ -543,6 +581,7 @@ class Phong_Shader extends Shader          // THE DEFAULT SHADER: This uses the 
           }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
                                             // Phong shading is not to be confused with the Phong Reflection Model.
           vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
+          if( USE_TEXTURE && tex_color.w < .01 ) discard;
                                                                                       // Compute an initial (ambient) color:
           if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
           else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
