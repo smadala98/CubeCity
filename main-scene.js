@@ -43,6 +43,14 @@ class Assignment_Three_Scene extends Scene_Component
             y: 1
         };
         
+        this.prism = {
+            x: 4,
+            y: 2
+        };               
+        
+        this.x_aligned = false;
+        this.is_standing = false;        
+
         // Garett's advice for shadows.
         this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
         this.scratchpad = document.createElement('canvas');
@@ -166,6 +174,14 @@ class Assignment_Three_Scene extends Scene_Component
               'x': [[1,0,-3],[1,0,3],[1,-3,0],[1,3,0]], // standing up             
         };
       }
+    /*
+    set_rect_coordinates() {
+        this.prism.x = this.player1.x < this.player2.x ? this.player1.x : this.player2.x;
+        this.prism.y = this.player1.y < this.player2.y ? this.player1.y : this.player2.y; 
+        console.log(this.prism.x);
+        console.log(this.prism.y);
+    }
+    */
     check_if_adjacent() {
         // If this statement is true, this means the blocks are lined up in the x axis and adjacent.
         if ((Math.abs(this.coords1[0] - this.coords2[0]) === 2) && (this.coords1[2] === this.coords2[2])) {
@@ -173,6 +189,7 @@ class Assignment_Three_Scene extends Scene_Component
                 this.rect_position = this.rect_position.times(Mat4.translation(new_coords));
                 this.rect_coords = new_coords;  
                 this.combine = 1;
+                this.x_aligned = true;
         // If this statement is true, this means that the blocks are lined up in the z axis and adjacent.
         } else if ((Math.abs(this.coords1[2] - this.coords2[2]) === 2) && (this.coords1[0] === this.coords2[0])) {
                 let new_coords = [1/2 * (this.coords1[0] + this.coords2[0]), 1/2 * (this.coords1[1] + this.coords2[1]), 1/2 * (this.coords1[2] + this.coords2[2])];
@@ -183,7 +200,13 @@ class Assignment_Three_Scene extends Scene_Component
                 this.rect_cur_position = 's';
                 this.rect_coords = new_coords;  
                 this.combine = 1;
+                this.x_aligned = false;
         }
+        // set_rect_coordinates();
+        this.prism.x = this.player1.x < this.player2.x ? this.player1.x : this.player2.x;
+        this.prism.y = this.player1.y < this.player2.y ? this.player1.y : this.player2.y; 
+        // console.log(this.prism.x);
+        // console.log(this.prism.y);
     }
     change_position( is_lateral, sign, index, cube_index) {
           // We are in prism mode, so use a different function.
@@ -272,29 +295,263 @@ class Assignment_Three_Scene extends Scene_Component
                                        .times(Mat4.rotation(sign * Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
           this.rect_cur_position = this.next_positions_dict[this.rect_cur_position][index];
           // TODO: figure out how to properly update prism coordinates. Prob need to do something weird with standing up positions.
-          console.log(this.rect_cur_position);
+          // console.log(this.rect_cur_position);
+    }     
+  
+    // Direction = [0,1,2,3] for [right, left, up, down], respectively
+    /*
+    update_rect_coord(direction) {  
+        console.log("updating rect coord");
+        // Right      
+        if (direction === 0) {       
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x+2,this.prism.y)) {                    
+                    this.is_standing = true;
+                    this.prism.x = this.prism.x+2;
+                    this.change_position(1, 1, 0, 0);
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x+1,this.prism.y)) {                                        
+                    this.prism.x = this.prism.x+1;
+                    this.change_position(1, 1, 0, 0);
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x+2, this.prism.y)) {
+                    this.is_standing = false;
+                    this.prism.x = this.prism.x+2;
+                    this.change_position(1, 1, 0, 0);
+                }
+            }            
+       }
+       // Left 
+       if (direction === 1) {
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x-2, this.prism.y)) {
+                    this.is_standing = true;
+                    this.prism.x = this.prism.x-2;
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x-1, this.prism.y)) {
+                    this.prism.x--;
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x-2, this.prism.y)) {
+                    this.is_standing = false;
+                    this.prism.x = this.prism.x-2;
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }
+       }
+       // Up
+       if (direction === 2) {
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y-1))
+                    this.prism.y--;
+                    this.change_position(0, 1, 2, 0);
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y-2)) {
+                    this.is_standing = true;
+                    this.prism.y = this.prism.y-2;
+                    this.change_position(0, 1, 2, 0);
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x, this.prism.y-2)) {
+                    this.is_standing = false;
+                    this.prism.y = this.prism.y-2;
+                    this.change_position(0, 1, 2, 0);
+                }
+            }
+       }
+       // Down
+       if (direction === 3) {
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y+1)) {
+                    this.prism.y++;
+                    this.change_position(0, -1, 3, 0);     
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y+2)) {
+                    this.is_standing = true;
+                    this.prism.y = this.prism.y + 2;
+                    this.change_position(0, -1, 3, 0); 
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x, this.prism.y+2)) {
+                    this.is_standing = false;
+                    this.prism.y = this.prism.y + 2;
+                    this.change_position(0, -1, 3, 0); 
+                }
+            }
+       }
     }
-
-    canMove(x, y) {
+    */
+    
+    can_move(x, y) {
       return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] == 1);
-    }
+    }  
 
     make_control_panel()
       {
         this.control_panel.innerHTML += "Player One Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "d" ], () => { if (this.canMove(this.player1.x+1,this.player1.y)) { this.player1.x++; this.change_position(1, 1, 0, 0); } });
-        this.key_triggered_button( "Left", [ "a" ], ()   => { if (this.canMove(this.player1.x-1,this.player1.y)) { this.player1.x--; this.change_position(1, -1, 1, 0); } });
-        this.key_triggered_button( "Up", [ "w" ], ()     => { if (this.canMove(this.player1.x,this.player1.y-1)) { this.player1.y--; this.change_position(0, 1, 2, 0); } });
-        this.key_triggered_button("Down", [ "s" ], ()    => { if (this.canMove(this.player1.x,this.player1.y+1)) { this.player1.y++; this.change_position(0, -1, 3, 0); } });
+        this.key_triggered_button( "Right",  [ "d" ], () => {                         
+            if (this.combine) { // update_rect_coord(0); }
+                if (this.x_aligned && !this.is_standing) {                                       
+                    if (this.can_move(this.prism.x+2,this.prism.y)) {                                            
+                        this.is_standing = true;
+                        this.prism.x = this.prism.x+2;
+                        this.change_position(1, 1, 0, 0);
+                    }
+                }
+                else if (!this.x_aligned && !this.is_standing) {
+                    if (this.can_move(this.prism.x+1,this.prism.y)) {                        
+                        this.prism.x = this.prism.x+1;
+                        this.change_position(1, 1, 0, 0);
+                    }
+                }
+                else { // is_standing === 1
+                    if (this.can_move(this.prism.x+2, this.prism.y)) {
+                        this.is_standing = false;
+                        this.x_aligned = true;
+                        this.prism.x = this.prism.x+1;
+                        this.change_position(1, 1, 0, 0);
+                    }
+                }
+                console.log("New Coordinate:");
+                console.log(this.is_standing);
+                console.log(this.prism.x);
+                console.log(this.prism.y);  
+            }
+            else {
+                if (this.can_move(this.player1.x+1,this.player1.y)) { 
+                    this.player1.x++; 
+                    this.change_position(1, 1, 0, 0);                     
+                } 
+            }
+        });
+        this.key_triggered_button( "Left", [ "a" ], ()   => { 
+            if (this.combine) { // update_rect_coord(1); }
+                if (this.x_aligned && !this.is_standing) {                                           
+                    if (this.can_move(this.prism.x-1, this.prism.y)) {                        
+                        this.is_standing = true;
+                        this.prism.x = this.prism.x-1;
+                        this.change_position(1, -1, 1, 0); 
+                    }                    
+                }
+                else if (!this.x_aligned && !this.is_standing) {
+                    if (this.can_move(this.prism.x-1, this.prism.y)) {
+                        this.prism.x--;
+                        this.change_position(1, -1, 1, 0); 
+                    }
+                }
+                else { // is_standing === 1
+                    if (this.can_move(this.prism.x-2, this.prism.y)) {
+                        this.is_standing = false;
+                        this.x_aligned = true;
+                        this.prism.x = this.prism.x-2;
+                        this.change_position(1, -1, 1, 0); 
+                    }
+                }      
+                console.log("New Coordinate:");
+                console.log(this.is_standing);
+                console.log(this.prism.x);
+                console.log(this.prism.y);            
+            }            
+            else {
+                if (this.can_move(this.player1.x-1,this.player1.y)) { 
+                    this.player1.x--; 
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }
+        });
+        this.key_triggered_button( "Up", [ "w" ], ()     => { 
+            if (this.combine) { // update_rect_coord(2); }                
+                if (this.x_aligned && !this.is_standing) {
+                    if (this.can_move(this.prism.x, this.prism.y-1)) {
+                        this.prism.y--;
+                        this.change_position(0, 1, 2, 0);
+                    }
+                }
+                else if (!this.x_aligned && !this.is_standing) {                    
+                        if (this.can_move(this.prism.x, this.prism.y-1)) {
+                            this.is_standing = true;
+                            this.prism.y = this.prism.y-1;
+                            this.change_position(0, 1, 2, 0);
+                        }
+                }
+                else { // is_standing === 1
+                    if (this.can_move(this.prism.x, this.prism.y-2)) {
+                        this.is_standing = false;
+                        this.x_aligned = false;
+                        this.prism.y = this.prism.y-2;
+                        this.change_position(0, 1, 2, 0);
+                    }
+                }
+                console.log("New Coordinate:");
+                console.log(this.is_standing);
+                console.log(this.prism.x);
+                console.log(this.prism.y);  
+            }
+            else {
+                if (this.can_move(this.player1.x,this.player1.y-1)) { 
+                    this.player1.y--; 
+                    this.change_position(0, 1, 2, 0); 
+                } 
+            }
+        });
+        this.key_triggered_button("Down", [ "s" ], ()    => { 
+            if (this.combine) { // update_rect_coord(3); }
+                if (this.x_aligned && !this.is_standing) {
+                    if (this.can_move(this.prism.x, this.prism.y+1)) {
+                        this.prism.y++;
+                        this.change_position(0, -1, 3, 0);     
+                    }
+                }
+                else if (!this.x_aligned && !this.is_standing) {
+                    if (this.can_move(this.prism.x, this.prism.y+2)) {
+                        this.is_standing = true;
+                        this.prism.y = this.prism.y + 2;
+                        this.change_position(0, -1, 3, 0); 
+                    }
+                }
+                else { // is_standing === 1
+                    if (this.can_move(this.prism.x, this.prism.y+2)) {
+                        this.is_standing = false;
+                        this.x_aligned = false;
+                        this.prism.y = this.prism.y + 1;
+                        this.change_position(0, -1, 3, 0); 
+                    }
+                }
+                console.log("New Coordinate:");
+                console.log(this.is_standing);
+                console.log(this.prism.x);
+                console.log(this.prism.y);  
+            }
+            else {
+                if (this.can_move(this.player1.x,this.player1.y+1)) { 
+                    this.player1.y++; 
+                    this.change_position(0, -1, 3, 0); 
+                } 
+            }                     
+        });          
         this.key_triggered_button("Make Transparent", [ "q" ], () => { this.transparent1 = !this.transparent1; });
         this.new_line();
         this.control_panel.innerHTML += "Player Two Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "l" ], () => { if (this.canMove(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); } });
-        this.key_triggered_button( "Left", [ "j" ], ()   => { if (this.canMove(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); } });
-        this.key_triggered_button( "Up", [ "i" ], ()     => { if (this.canMove(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); } });
-        this.key_triggered_button("Down", [ "k" ], ()    => { if (this.canMove(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); } });
+        this.key_triggered_button( "Right",  [ "l" ], () => { if (this.can_move(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); } });
+        this.key_triggered_button( "Left", [ "j" ], ()   => { if (this.can_move(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); } });
+        this.key_triggered_button( "Up", [ "i" ], ()     => { if (this.can_move(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); } });
+        this.key_triggered_button("Down", [ "k" ], ()    => { if (this.can_move(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); } });
         this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
         this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
                 { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
