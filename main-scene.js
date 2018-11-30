@@ -15,9 +15,34 @@ class Assignment_Three_Scene extends Scene_Component
         const shapes = { box:   new Cube(),
                          box_2: new ZoomCube(),
                          axis:  new Axis_Arrows(),
+                         floor: new Square(),
                          rect_prism: new Prism(),
-                       }
+                       }                       
         this.submit_shapes( context, shapes );
+        // JavaScript Player + Board information
+        // 1 = valid, 2 = obstacle
+        this.board = [
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ];
+        this.player1 = {
+            x: 4,
+            y: 4
+        };
+        
+        this.player2 = {
+            x: 4,
+            y: 1
+        };
+        
         // Garett's advice for shadows.
         this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
         this.scratchpad = document.createElement('canvas');
@@ -33,6 +58,7 @@ class Assignment_Three_Scene extends Scene_Component
             boldandbrasht: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", true) }),
             brashandbold: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),
             brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),            
+            ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", false) }),
             arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", true) }),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5}),
             shadow: context.get_instance(Phong_Shader).material( Color.of( 0, 0, 0,1 ), { ambient: 1, texture: this.texture } ),
@@ -248,22 +274,27 @@ class Assignment_Three_Scene extends Scene_Component
           // TODO: figure out how to properly update prism coordinates. Prob need to do something weird with standing up positions.
           console.log(this.rect_cur_position);
     }
+
+    canMove(x, y) {
+      return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] == 1);
+    }
+
     make_control_panel()
       {
         this.control_panel.innerHTML += "Player One Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "d" ], () => { this.change_position(1, 1, 0, 0); });
-        this.key_triggered_button( "Left", [ "a" ], () => { this.change_position(1, -1, 1, 0); });
-        this.key_triggered_button( "Up", [ "w" ], () => { this.change_position(0, 1, 2, 0); });
-        this.key_triggered_button("Down", [ "s" ], () => { this.change_position(0, -1, 3, 0); });
+        this.key_triggered_button( "Right",  [ "d" ], () => { if (this.canMove(this.player1.x+1,this.player1.y)) { this.player1.x++; this.change_position(1, 1, 0, 0); } });
+        this.key_triggered_button( "Left", [ "a" ], ()   => { if (this.canMove(this.player1.x-1,this.player1.y)) { this.player1.x--; this.change_position(1, -1, 1, 0); } });
+        this.key_triggered_button( "Up", [ "w" ], ()     => { if (this.canMove(this.player1.x,this.player1.y-1)) { this.player1.y--; this.change_position(0, 1, 2, 0); } });
+        this.key_triggered_button("Down", [ "s" ], ()    => { if (this.canMove(this.player1.x,this.player1.y+1)) { this.player1.y++; this.change_position(0, -1, 3, 0); } });
         this.key_triggered_button("Make Transparent", [ "q" ], () => { this.transparent1 = !this.transparent1; });
         this.new_line();
         this.control_panel.innerHTML += "Player Two Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "l" ], () => { this.change_position(1, 1, 0, 1); });
-        this.key_triggered_button( "Left", [ "j" ], () => { this.change_position(1, -1, 1, 1); });
-        this.key_triggered_button( "Up", [ "i" ], () => { this.change_position(0, 1, 2, 1); });
-        this.key_triggered_button("Down", [ "k" ], () => { this.change_position(0, -1, 3, 1); });
+        this.key_triggered_button( "Right",  [ "l" ], () => { if (this.canMove(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); } });
+        this.key_triggered_button( "Left", [ "j" ], ()   => { if (this.canMove(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); } });
+        this.key_triggered_button( "Up", [ "i" ], ()     => { if (this.canMove(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); } });
+        this.key_triggered_button("Down", [ "k" ], ()    => { if (this.canMove(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); } });
         this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
         this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
                 { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
@@ -279,7 +310,7 @@ class Assignment_Three_Scene extends Scene_Component
               model_transform = model_transform.times(Mat4.translation([0,0,2]));
               for (var j = 0; j < 10; j++) {
                     model_transform = model_transform.times(Mat4.translation([2,0,0]));
-                    this.shapes.box.draw(graphics_state, model_transform, this.materials.ground);
+                    this.shapes.box.draw(graphics_state, model_transform, this.materials.ditto);
               }
               model_transform = model_transform.times(Mat4.translation([-20,0,0]));
         }
