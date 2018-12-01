@@ -15,9 +15,44 @@ class Assignment_Three_Scene extends Scene_Component
         const shapes = { box:   new Cube(),
                          box_2: new ZoomCube(),
                          axis:  new Axis_Arrows(),
+                         floor: new Square(),
                          rect_prism: new Prism(),
-                       }
+                       }                       
         this.submit_shapes( context, shapes );
+        // JavaScript Player + Board information
+        // 1 = valid, -1 = empty, 0 = obstacle, 
+        // 2 = switch, 3 = finish
+        this.board = [
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 3, 1, 1, 1, 1, 1, 1, 2, 1],
+            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 0, 0, 0, 0,-1,-1, 0, 0, 0, 0],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 2,-1,-1, 1, 1, 1, 1],
+        ];
+        this.player1 = {
+            x: 0,
+            y: 9
+        };
+        
+        this.player2 = {
+            x: 9,
+            y: 9
+        };
+        
+        this.prism = {
+            x: 4,
+            y: 2
+        };               
+        
+        this.x_aligned = false;
+        this.is_standing = false;        
+        this.show_doors = [true, true];
+
         // Garett's advice for shadows.
 
         this.materials =
@@ -25,24 +60,28 @@ class Assignment_Three_Scene extends Scene_Component
             boldandbrash: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", true) }),
             boldandbrasht: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", true) }),
             brashandbold: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),
-            brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),            
+            brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),                        
+            ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", false) }),
+            kirby: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/kirby.jpg", false) }),
             arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", true) }),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5}),
           }
 
         this.lights = [ new Light( Vec.of(-10,10,10,1 ), Color.of( 0.5,1,1,1 ), 100000000 ) ];
-        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of(-10,10,10), Vec.of(0,0,0), Vec.of(0,1,0));
+        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of(-10,20,25), Vec.of(0,0,0), Vec.of(0,1,0));
 
         this.position = Mat4.identity(); // Holds the current transformation matrix of shape.
+        this.position = this.position.times(Mat4.translation([-8,0,10]));
         this.cur_val = 0;
         this.cur_position = "a";
-        this.coords1 = [0,0,0];
+        this.coords1 = [-8,0,10];
         this.transparent1 = 0;
-
-        this.position2 = this.position.times(Mat4.translation([0,0,-6]));
+        
+        this.position2 = Mat4.identity();
+        this.position2 = this.position2.times(Mat4.translation([10,0,10]));
         this.cur_val2 = 0;
         this.cur_position2 = 'a';
-        this.coords2 = [0,0,-6];
+        this.coords2 = [10,0,10];
         this.transparent2 = 0;
 
         this.combine = 0;
@@ -132,6 +171,12 @@ class Assignment_Three_Scene extends Scene_Component
               'x': [[1,0,-3],[1,0,3],[1,-3,0],[1,3,0]], // standing up             
         };
       }
+    
+    set_rect_coordinates() {
+        this.prism.x = this.player1.x < this.player2.x ? this.player1.x : this.player2.x;
+        this.prism.y = this.player1.y < this.player2.y ? this.player1.y : this.player2.y;
+    }
+    
     check_if_adjacent() {
         // If this statement is true, this means the blocks are lined up in the x axis and adjacent.
         if ((Math.abs(this.coords1[0] - this.coords2[0]) === 2) && (this.coords1[2] === this.coords2[2])) {
@@ -139,6 +184,7 @@ class Assignment_Three_Scene extends Scene_Component
                 this.rect_position = this.rect_position.times(Mat4.translation(new_coords));
                 this.rect_coords = new_coords;  
                 this.combine = 1;
+                this.x_aligned = true;
         // If this statement is true, this means that the blocks are lined up in the z axis and adjacent.
         } else if ((Math.abs(this.coords1[2] - this.coords2[2]) === 2) && (this.coords1[0] === this.coords2[0])) {
                 let new_coords = [1/2 * (this.coords1[0] + this.coords2[0]), 1/2 * (this.coords1[1] + this.coords2[1]), 1/2 * (this.coords1[2] + this.coords2[2])];
@@ -149,8 +195,12 @@ class Assignment_Three_Scene extends Scene_Component
                 this.rect_cur_position = 's';
                 this.rect_coords = new_coords;  
                 this.combine = 1;
+                this.x_aligned = false;
         }
+        // Set rectangular prism coordinates for future movements + collision detection
+        this. set_rect_coordinates();        
     }
+
     change_position( is_lateral, sign, index, cube_index) {
           // We are in prism mode, so use a different function.
           if (this.combine) {
@@ -238,42 +288,244 @@ class Assignment_Three_Scene extends Scene_Component
                                        .times(Mat4.rotation(sign * Math.PI/2, Vec.of(rotation_x, rotation_y, rotation_z)));
           this.rect_cur_position = this.next_positions_dict[this.rect_cur_position][index];
           // TODO: figure out how to properly update prism coordinates. Prob need to do something weird with standing up positions.
-          console.log(this.rect_cur_position);
+          // console.log(this.rect_cur_position);
+    }     
+    
+    can_move(x, y) {
+      return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] >= 1);
+    }  
+
+    // Direction = [0,1,2,3] for [right, left, up, down], respectively    
+    update_rect_coord(direction) {          
+        // Right      
+        if (direction === 0) {                   
+            if (this.x_aligned && !this.is_standing) {                                       
+                if (this.can_move(this.prism.x+2,this.prism.y)) {                                            
+                    this.is_standing = true;
+                    this.prism.x = this.prism.x+2;
+                    this.change_position(1, 1, 0, 0);
+                    this.check_finish(this.prism.x, this.prism.y);
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x+1,this.prism.y) && this.can_move(this.prism.x+1,this.prism.y+1)) {                        
+                    this.prism.x++;
+                    this.change_position(1, 1, 0, 0);
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x+2, this.prism.y) && this.can_move(this.prism.x+1, this.prism.y)) {
+                    this.is_standing = false;
+                    this.x_aligned = true;
+                    this.prism.x = this.prism.x+1;
+                    this.change_position(1, 1, 0, 0);
+                }
+            }            
+       }
+       // Left 
+       if (direction === 1) {
+            if (this.x_aligned && !this.is_standing) {                                           
+                if (this.can_move(this.prism.x-1, this.prism.y)) {                        
+                    this.is_standing = true;
+                    this.prism.x = this.prism.x-1;
+                    this.change_position(1, -1, 1, 0); 
+                    this.check_finish(this.prism.x, this.prism.y);
+                }                    
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x-1, this.prism.y) && this.can_move(this.prism.x-1, this.prism.y+1)) {
+                    this.prism.x--;
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x-2, this.prism.y) && this.can_move(this.prism.x-1, this.prism.y)) {
+                    this.is_standing = false;
+                    this.x_aligned = true;
+                    this.prism.x = this.prism.x-2;
+                    this.change_position(1, -1, 1, 0); 
+                }
+            }      
+       }
+       // Up
+       if (direction === 2) {
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y-1) && this.can_move(this.prism.x+1, this.prism.y-1)) {
+                    this.prism.y--;
+                    this.change_position(0, 1, 2, 0);
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {                    
+                    if (this.can_move(this.prism.x, this.prism.y-1)) {
+                        this.is_standing = true;
+                        this.prism.y = this.prism.y-1;
+                        this.change_position(0, 1, 2, 0);
+                        this.check_finish(this.prism.x, this.prism.y);
+                    }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x, this.prism.y-2) && this.can_move(this.prism.x, this.prism.y-1)) {
+                    this.is_standing = false;
+                    this.x_aligned = false;
+                    this.prism.y = this.prism.y-2;
+                    this.change_position(0, 1, 2, 0);
+                }
+            }
+       }
+       // Down
+       if (direction === 3) {
+            if (this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y+1) && this.can_move(this.prism.x+1, this.prism.y+1)) {
+                    this.prism.y++;
+                    this.change_position(0, -1, 3, 0);     
+                }
+            }
+            else if (!this.x_aligned && !this.is_standing) {
+                if (this.can_move(this.prism.x, this.prism.y+2)) {
+                    this.is_standing = true;
+                    this.prism.y = this.prism.y + 2;
+                    this.change_position(0, -1, 3, 0); 
+                    this.check_finish(this.prism.x, this.prism.y);
+                }
+            }
+            else { // is_standing === 1
+                if (this.can_move(this.prism.x, this.prism.y+2) && this.can_move(this.prism.x, this.prism.y+1)) {
+                    this.is_standing = false;
+                    this.x_aligned = false;
+                    this.prism.y = this.prism.y + 1;
+                    this.change_position(0, -1, 3, 0); 
+                }
+            }
+       }
+    }          
+    
+    check_switch(x,y) {
+        // Position is switch if value = 2
+        if (this.board[y][x] == 2) {
+            console.log("Stepped on switch");            
+            this.open_door(x,y);
+        }
     }
+    
+    // A Map of all switches for level 1
+    open_door(x,y) {
+        // Change door values to 1 in order to open
+        if ( x === 3 && y === 9) {
+            this.board[5][8] = 1;
+            this.show_doors[0] = false;
+        }
+        else if ( x === 8 && y === 1) {
+            this.board[5][1] = 1;
+            this.show_doors[1] = false;
+        }
+    } 
+
+    check_finish(x,y) {
+        // Position is finsih if value = 3
+        if (this.is_standing && this.board[y][x] == 3) {
+            console.log("Nice! Onto the next level");
+        }
+    }
+
     make_control_panel()
       {
         this.control_panel.innerHTML += "Player One Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "d" ], () => { this.change_position(1, 1, 0, 0); });
-        this.key_triggered_button( "Left", [ "a" ], () => { this.change_position(1, -1, 1, 0); });
-        this.key_triggered_button( "Up", [ "w" ], () => { this.change_position(0, 1, 2, 0); });
-        this.key_triggered_button("Down", [ "s" ], () => { this.change_position(0, -1, 3, 0); });
+        this.key_triggered_button( "Right",  [ "d" ], () => {                         
+            if (this.combine) { this.update_rect_coord(0); }
+            else { if (this.can_move(this.player1.x+1,this.player1.y)) { this.player1.x++; this.change_position(1, 1, 0, 0); this.check_switch(this.player1.x, this.player1.y); } }
+        });
+
+        this.key_triggered_button( "Left", [ "a" ], ()   => { 
+            if (this.combine) { this.update_rect_coord(1); }                       
+            else { if (this.can_move(this.player1.x-1,this.player1.y)) { this.player1.x--; this.change_position(1, -1, 1, 0); this.check_switch(this.player1.x, this.player1.y); } }
+        });
+        this.key_triggered_button( "Up", [ "w" ], ()     => { 
+            if (this.combine) { this.update_rect_coord(2); }            
+            else { if (this.can_move(this.player1.x,this.player1.y-1)) { this.player1.y--; this.change_position(0, 1, 2, 0); this.check_switch(this.player1.x, this.player1.y); } }
+        });
+        this.key_triggered_button("Down", [ "s" ], ()    => { 
+            if (this.combine) { this.update_rect_coord(3); }            
+            else { if (this.can_move(this.player1.x,this.player1.y+1)) { this.player1.y++; this.change_position(0, -1, 3, 0); this.check_switch(this.player1.x, this.player1.y);} }                     
+        });          
         this.key_triggered_button("Make Transparent", [ "q" ], () => { this.transparent1 = !this.transparent1; });
         this.new_line();
         this.control_panel.innerHTML += "Player Two Controls";
         this.new_line();
-        this.key_triggered_button( "Right",  [ "l" ], () => { this.change_position(1, 1, 0, 1); });
-        this.key_triggered_button( "Left", [ "j" ], () => { this.change_position(1, -1, 1, 1); });
-        this.key_triggered_button( "Up", [ "i" ], () => { this.change_position(0, 1, 2, 1); });
-        this.key_triggered_button("Down", [ "k" ], () => { this.change_position(0, -1, 3, 1); });
+        this.key_triggered_button( "Right",  [ "l" ], () => { 
+            if (this.combine) { this.update_rect_coord(0); }
+            else { if (this.can_move(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); this.check_switch(this.player2.x, this.player2.y); } }
+        });
+        this.key_triggered_button( "Left", [ "j" ], ()   => { 
+            if (this.combine) { this.update_rect_coord(1); }
+            else { if (this.can_move(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); this.check_switch(this.player2.x, this.player2.y);} }
+        });
+        this.key_triggered_button( "Up", [ "i" ], ()     => { 
+            if (this.combine) { this.update_rect_coord(2); }
+            else { if (this.can_move(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); this.check_switch(this.player2.x, this.player2.y);} }
+        });
+        this.key_triggered_button("Down", [ "k" ], ()    => { 
+            if (this.combine) { this.update_rect_coord(3); }
+            else { if (this.can_move(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); this.check_switch(this.player2.x, this.player2.y);} }
+        });
         this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
       }
+
     display( graphics_state )
       { graphics_state.lights = this.lights;
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+        
+        // Draw horizontal walls
+        let horiz_wall_transform = Mat4.identity();
+        horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([-10,0,0]));               
+        for (var i = 0; i < 1; i++) {
+              horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([0,0,2]));
+              for (var j = 0; j < 10; j++) {
+                    horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([2,0,0]));                    
+                    if ( j === 4 || j === 5) 
+                        continue;                    
+                    else if ( j === 1 ) {                        
+                        if (this.show_doors[1]) {
+                            this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.3,0.413,0.370, 1) }));
+                        }
+                    }
+                    else if (j === 8 ) {
+                        if (this.show_doors[0]) {
+                            this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.3,0.413,0.370, 1) }));
+                        }
+                    }
+                    else                                   
+                        this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.760,0.413,0.370, 1) }));
+              }
+              horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([-20,0,0]));
+        }
+        /*
+        let vert_wall_transform = Mat4.identity();
+        vert_wall_transform = vert_wall_transform.times(Mat4.translations([-10,0]));
+        for (var i = 0; i < 1; i++) {
+            vert_wall_transform = vert_wall_transform.times(Mat4.translation([0,0,2]));
+            this.shapes.box.draw(graphics_state, )
+        }
+        */ 
 
         // Draw a floor by using multiple cubes. TODO: create an outline for each cube, see assignment 1.
-        let model_transform = Mat4.identity();
-        model_transform = model_transform.times(Mat4.translation([-10,-2,-10]));
+        let model_transform2 = Mat4.identity();
+        model_transform2 = model_transform2.times(Mat4.translation([-10,-2,-10]));
         for (var i = 0; i < 10; i++) {
-              model_transform = model_transform.times(Mat4.translation([0,0,2]));
+              model_transform2 = model_transform2.times(Mat4.translation([0,0,2]));
               for (var j = 0; j < 10; j++) {
-                    model_transform = model_transform.times(Mat4.translation([2,0,0]));
-                    this.shapes.box.draw(graphics_state, model_transform, this.materials.ground);
+                    model_transform2 = model_transform2.times(Mat4.translation([2,0,0]));
+                    if ( (j === 4 || j === 5) && (i > 2) )
+                        continue;
+                    else if ( (i === 9 && j === 3) || (i === 1 && j === 8))
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.boldandbrash);
+                    else if ( i === 1 && j === 1)
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.brashandbold);
+                    else                      
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.ditto);
               }
-              model_transform = model_transform.times(Mat4.translation([-20,0,0]));
+              model_transform2 = model_transform2.times(Mat4.translation([-20,0,0]));
         }
-
         // We combined our cubes into the prism.
         if (this.combine) {
             this.shapes.rect_prism.draw(graphics_state, this.rect_position, this.materials.phong);
