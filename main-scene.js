@@ -19,13 +19,6 @@ class Assignment_Three_Scene extends Scene_Component
                        }
         this.submit_shapes( context, shapes );
         // Garett's advice for shadows.
-        this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
-        this.scratchpad = document.createElement('canvas');
-        this.scratchpad_context = this.scratchpad.getContext('2d');     // A hidden canvas for re-sizing the real canvas to be square.
-        this.scratchpad.width   = 256;
-        this.scratchpad.height  = 256;
-        this.texture = new Texture ( context.gl, "", false, false );        // Initial image source: Blank gif file
-        this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
         this.materials =
           { phong:  context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) ),
@@ -35,7 +28,6 @@ class Assignment_Three_Scene extends Scene_Component
             brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),            
             arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", true) }),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5}),
-            shadow: context.get_instance(Phong_Shader).material( Color.of( 0, 0, 0,1 ), { ambient: 1, texture: this.texture } ),
           }
 
         this.lights = [ new Light( Vec.of(-10,10,10,1 ), Color.of( 0.5,1,1,1 ), 100000000 ) ];
@@ -265,8 +257,6 @@ class Assignment_Three_Scene extends Scene_Component
         this.key_triggered_button( "Up", [ "i" ], () => { this.change_position(0, 1, 2, 1); });
         this.key_triggered_button("Down", [ "k" ], () => { this.change_position(0, -1, 3, 1); });
         this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
-        this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
-                { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;
@@ -301,131 +291,5 @@ class Assignment_Three_Scene extends Scene_Component
                         this.transparent1 ? this.materials.boldandbrasht : this.materials.boldandbrash);
             }
         }
-
-//         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
-//         this.texture.image.src = this.result_img.src = this.scratchpad.toDataURL("image/png"); // Clear the canvas and start over, beginning scene 2:
-// 		this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
-
-//         graphics_state.camera_transform = Mat4.look_at( Vec.of(-25,20,25), Vec.of(0,0,0), Vec.of(0,1,0));
-//         model_transform = Mat4.identity();
-//         model_transform = model_transform.times(Mat4.translation([-10,-2,-10]));
-//         for (var i = 0; i < 10; i++) {
-//               model_transform = model_transform.times(Mat4.translation([0,0,2]));
-//               for (var j = 0; j < 10; j++) {
-//                     model_transform = model_transform.times(Mat4.translation([2,0,0]));
-//                     this.shapes.box.draw(graphics_state, model_transform, this.materials.shadow);
-//               }
-//               model_transform = model_transform.times(Mat4.translation([-20,0,0]));
-//         }
-//         // Change order in which cubes are drawn to have accurate transparency, based of z value of cube coordinates.
-//         if (this.coords2[2] > this.coords1[2]) {
-//             this.shapes.box.draw(graphics_state, this.position, this.materials.shadow);
-//             this.shapes.box.draw(graphics_state, this.position2, this.materials.shadow);
-//         } else {
-//             this.shapes.box.draw(graphics_state, this.position2, this.materials.shadow);
-//             this.shapes.box.draw(graphics_state, this.position, this.materials.shadow);
-//         }
-//         graphics_state.camera_transform = Mat4.look_at( Vec.of(-20,10,10), Vec.of(0,0,0), Vec.of(0,1,0));
       }
   }
-
-class Texture_Rotate extends Phong_Shader
-{ fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
-    {
-      // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
-//       return `
-//         uniform sampler2D texture;
-//         void main()
-//         { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
-//           { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
-//             return;
-//           }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
-//                                             // Phong shading is not to be confused with the Phong Reflection Model.
-//           mat4 translate = mat4(1.,0.,0.,0.,0.,1.,0.,0.,0.,0.,1.,0,0.5,0.5,0.,1.);
-//           mat4 rotate = mat4(cos(mod(animation_time,4.)*3.14159/2.),sin(mod(animation_time,4.)*3.14159/2.),0,0,-sin(mod(animation_time,4.)*3.14159/2.),cos(mod(animation_time,4.)*3.14159/2.),0,0,0,0,1,0,0,0,0,1); 
-//           mat4 translate2 = mat4(1.,0.,0.,0.,0.,1.,0.,0.,0.,0.,1.,0,-0.5,-0.5,0.,1.);
-//           vec4 new_coord4 = translate * rotate * translate2 * vec4(f_tex_coord, 0., 1.);
-//           vec2 new_coord2 = new_coord4.xy;
-//           vec4 tex_color = texture2D( texture, new_coord2 );                         // Sample the texture image in the correct place.
-//                                                                                       // Compute an initial (ambient) color:
-//           if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
-//           else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-//           gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
-//         }`;
-    }
-}
-
-
-class Shadow_Shader extends Phong_Shader
-{ shared_glsl_code()            // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
-    { return `precision mediump float;
-        const int N_LIGHTS = 2;             // We're limited to only so many inputs in hardware.  Lights are costly (lots of sub-values).
-        uniform float ambient, diffusivity, specularity, smoothness, animation_time, attenuation_factor[N_LIGHTS];
-        uniform bool GOURAUD, COLOR_NORMALS, USE_TEXTURE;               // Flags for alternate shading methods
-        uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS], shapeColor;
-        varying vec3 N, E;                    // Specifier "varying" means a variable's final value will be passed from the vertex shader 
-        varying vec2 f_tex_coord;             // on to the next phase (fragment shader), then interpolated per-fragment, weighted by the 
-        varying vec4 VERTEX_COLOR;            // pixel fragment's proximity to each of the 3 vertices (barycentric interpolation).
-        varying vec3 L[N_LIGHTS], H[N_LIGHTS];
-        varying float dist[N_LIGHTS];
-        
-        vec3 phong_model_lights( vec3 N )
-          { vec3 result = vec3(0.0);
-            for(int i = 0; i < N_LIGHTS; i++)
-              {
-                float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
-                float diffuse  =      max( dot(N, L[i]), 0.0 );
-                float specular = pow( max( dot(N, H[i]), 0.0 ), smoothness );
-                result += attenuation_multiplier * ( shapeColor.xyz * diffusivity * diffuse + lightColor[i].xyz * specularity * specular );
-              }
-            return result;
-          }
-        `;
-    }
-  vertex_glsl_code()           // ********* VERTEX SHADER *********
-    { return `
-        attribute vec3 object_space_pos, normal;
-        attribute vec2 tex_coord;
-        uniform mat4 camera_transform, camera_model_transform, projection_camera_model_transform;
-        uniform mat3 inverse_transpose_modelview;
-        void main()
-        { gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
-          N = normalize( inverse_transpose_modelview * normal );                             // The final normal vector in screen space.
-          f_tex_coord = tex_coord;                                         // Directly use original texture coords and interpolate between.
-          
-          if( COLOR_NORMALS )                                     // Bypass all lighting code if we're lighting up vertices some other way.
-          { VERTEX_COLOR = vec4( N[0] > 0.0 ? N[0] : sin( animation_time * 3.0   ) * -N[0],             // In "normals" mode, 
-                                 N[1] > 0.0 ? N[1] : sin( animation_time * 15.0  ) * -N[1],             // rgb color = xyz quantity.
-                                 N[2] > 0.0 ? N[2] : sin( animation_time * 45.0  ) * -N[2] , 1.0 );     // Flash if it's negative.
-            return;
-          }
-                                                  // The rest of this shader calculates some quantities that the Fragment shader will need:
-          vec3 screen_space_pos = ( camera_model_transform * vec4(object_space_pos, 1.0) ).xyz;
-          E = normalize( -screen_space_pos );
-          for( int i = 0; i < N_LIGHTS; i++ )
-          {            // Light positions use homogeneous coords.  Use w = 0 for a directional light source -- a vector instead of a point.
-            L[i] = normalize( ( camera_transform * lightPosition[i] ).xyz - lightPosition[i].w * screen_space_pos );
-            H[i] = normalize( L[i] + E );
-            
-            // Is it a point light source?  Calculate the distance to it from the object.  Otherwise use some arbitrary distance.
-            dist[i]  = lightPosition[i].w > 0.0 ? distance((camera_transform * lightPosition[i]).xyz, screen_space_pos)
-                                                : distance( attenuation_factor[i] * -lightPosition[i].xyz, object_space_pos.xyz );
-          }
-        }`;
-    }
-  fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
-    {                            // A fragment is a pixel that's overlapped by the current triangle.
-                                 // Fragments affect the final image or get discarded due to depth.
-      return `
-        uniform sampler2D texture;
-        void main()
-        {
-          vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
-          if( USE_TEXTURE && tex_color.w < .01 ) discard;
-                                                                                      // Compute an initial (ambient) color:
-          if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
-          else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-          gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
-        }`;
-    }
-}
