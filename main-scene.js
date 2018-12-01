@@ -20,18 +20,19 @@ class Assignment_Three_Scene extends Scene_Component
                        }                       
         this.submit_shapes( context, shapes );
         // JavaScript Player + Board information
-        // 1 = valid, 2 = obstacle
+        // 1 = valid, -1 = empty, 0 = obstacle, 
+        // 2 = switch, 3 = finish
         this.board = [
             [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [ 1, 3, 1, 1, 1, 1, 1, 1, 2, 1],
             [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
-            [-1, 1,-1,-1,-2,-2,-1,-1, 1,-1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
-            [ 1, 1, 1, 1,-2,-2, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 0, 0, 0, 0,-1,-1, 0, 0, 0, 0],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+            [ 1, 1, 1, 2,-1,-1, 1, 1, 1, 1],
         ];
         this.player1 = {
             x: 0,
@@ -50,6 +51,7 @@ class Assignment_Three_Scene extends Scene_Component
         
         this.x_aligned = false;
         this.is_standing = false;        
+        this.show_doors = [true, true];
 
         // Garett's advice for shadows.
         this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
@@ -65,8 +67,9 @@ class Assignment_Three_Scene extends Scene_Component
             boldandbrash: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", true) }),
             boldandbrasht: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/boldandbrash.jpg", true) }),
             brashandbold: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),
-            brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),            
+            brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),                        
             ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", false) }),
+            kirby: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/kirby.jpg", false) }),
             arrow: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/rgb.jpg", true) }),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5}),
             shadow: context.get_instance(Phong_Shader).material( Color.of( 0, 0, 0,1 ), { ambient: 1, texture: this.texture } ),
@@ -297,7 +300,7 @@ class Assignment_Three_Scene extends Scene_Component
     }     
     
     can_move(x, y) {
-      return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] == 1);
+      return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] >= 1);
     }  
 
     // Direction = [0,1,2,3] for [right, left, up, down], respectively    
@@ -309,16 +312,17 @@ class Assignment_Three_Scene extends Scene_Component
                     this.is_standing = true;
                     this.prism.x = this.prism.x+2;
                     this.change_position(1, 1, 0, 0);
+                    this.check_finish(this.prism.x, this.prism.y);
                 }
             }
             else if (!this.x_aligned && !this.is_standing) {
-                if (this.can_move(this.prism.x+1,this.prism.y)) {                        
-                    this.prism.x = this.prism.x+1;
+                if (this.can_move(this.prism.x+1,this.prism.y) && this.can_move(this.prism.x+1,this.prism.y+1)) {                        
+                    this.prism.x++;
                     this.change_position(1, 1, 0, 0);
                 }
             }
             else { // is_standing === 1
-                if (this.can_move(this.prism.x+2, this.prism.y)) {
+                if (this.can_move(this.prism.x+2, this.prism.y) && this.can_move(this.prism.x+1, this.prism.y)) {
                     this.is_standing = false;
                     this.x_aligned = true;
                     this.prism.x = this.prism.x+1;
@@ -333,16 +337,17 @@ class Assignment_Three_Scene extends Scene_Component
                     this.is_standing = true;
                     this.prism.x = this.prism.x-1;
                     this.change_position(1, -1, 1, 0); 
+                    this.check_finish(this.prism.x, this.prism.y);
                 }                    
             }
             else if (!this.x_aligned && !this.is_standing) {
-                if (this.can_move(this.prism.x-1, this.prism.y)) {
+                if (this.can_move(this.prism.x-1, this.prism.y) && this.can_move(this.prism.x-1, this.prism.y+1)) {
                     this.prism.x--;
                     this.change_position(1, -1, 1, 0); 
                 }
             }
             else { // is_standing === 1
-                if (this.can_move(this.prism.x-2, this.prism.y)) {
+                if (this.can_move(this.prism.x-2, this.prism.y) && this.can_move(this.prism.x-1, this.prism.y)) {
                     this.is_standing = false;
                     this.x_aligned = true;
                     this.prism.x = this.prism.x-2;
@@ -353,7 +358,7 @@ class Assignment_Three_Scene extends Scene_Component
        // Up
        if (direction === 2) {
             if (this.x_aligned && !this.is_standing) {
-                if (this.can_move(this.prism.x, this.prism.y-1)) {
+                if (this.can_move(this.prism.x, this.prism.y-1) && this.can_move(this.prism.x+1, this.prism.y-1)) {
                     this.prism.y--;
                     this.change_position(0, 1, 2, 0);
                 }
@@ -363,10 +368,11 @@ class Assignment_Three_Scene extends Scene_Component
                         this.is_standing = true;
                         this.prism.y = this.prism.y-1;
                         this.change_position(0, 1, 2, 0);
+                        this.check_finish(this.prism.x, this.prism.y);
                     }
             }
             else { // is_standing === 1
-                if (this.can_move(this.prism.x, this.prism.y-2)) {
+                if (this.can_move(this.prism.x, this.prism.y-2) && this.can_move(this.prism.x, this.prism.y-1)) {
                     this.is_standing = false;
                     this.x_aligned = false;
                     this.prism.y = this.prism.y-2;
@@ -377,7 +383,7 @@ class Assignment_Three_Scene extends Scene_Component
        // Down
        if (direction === 3) {
             if (this.x_aligned && !this.is_standing) {
-                if (this.can_move(this.prism.x, this.prism.y+1)) {
+                if (this.can_move(this.prism.x, this.prism.y+1) && this.can_move(this.prism.x+1, this.prism.y+1)) {
                     this.prism.y++;
                     this.change_position(0, -1, 3, 0);     
                 }
@@ -387,10 +393,11 @@ class Assignment_Three_Scene extends Scene_Component
                     this.is_standing = true;
                     this.prism.y = this.prism.y + 2;
                     this.change_position(0, -1, 3, 0); 
+                    this.check_finish(this.prism.x, this.prism.y);
                 }
             }
             else { // is_standing === 1
-                if (this.can_move(this.prism.x, this.prism.y+2)) {
+                if (this.can_move(this.prism.x, this.prism.y+2) && this.can_move(this.prism.x, this.prism.y+1)) {
                     this.is_standing = false;
                     this.x_aligned = false;
                     this.prism.y = this.prism.y + 1;
@@ -399,6 +406,34 @@ class Assignment_Three_Scene extends Scene_Component
             }
        }
     }          
+    
+    check_switch(x,y) {
+        // Position is switch if value = 2
+        if (this.board[y][x] == 2) {
+            console.log("Stepped on switch");            
+            this.open_door(x,y);
+        }
+    }
+    
+    // A Map of all switches for level 1
+    open_door(x,y) {
+        // Change door values to 1 in order to open
+        if ( x === 3 && y === 9) {
+            this.board[5][8] = 1;
+            this.show_doors[0] = false;
+        }
+        else if ( x === 8 && y === 1) {
+            this.board[5][1] = 1;
+            this.show_doors[1] = false;
+        }
+    } 
+
+    check_finish(x,y) {
+        // Position is finsih if value = 3
+        if (this.is_standing && this.board[y][x] == 3) {
+            console.log("Nice! Onto the next level");
+        }
+    }
 
     make_control_panel()
       {
@@ -406,19 +441,20 @@ class Assignment_Three_Scene extends Scene_Component
         this.new_line();
         this.key_triggered_button( "Right",  [ "d" ], () => {                         
             if (this.combine) { this.update_rect_coord(0); }
-            else { if (this.can_move(this.player1.x+1,this.player1.y)) { this.player1.x++; this.change_position(1, 1, 0, 0); } }
+            else { if (this.can_move(this.player1.x+1,this.player1.y)) { this.player1.x++; this.change_position(1, 1, 0, 0); this.check_switch(this.player1.x, this.player1.y); } }
         });
+
         this.key_triggered_button( "Left", [ "a" ], ()   => { 
             if (this.combine) { this.update_rect_coord(1); }                       
-            else { if (this.can_move(this.player1.x-1,this.player1.y)) { this.player1.x--; this.change_position(1, -1, 1, 0); } }
+            else { if (this.can_move(this.player1.x-1,this.player1.y)) { this.player1.x--; this.change_position(1, -1, 1, 0); this.check_switch(this.player1.x, this.player1.y); } }
         });
         this.key_triggered_button( "Up", [ "w" ], ()     => { 
             if (this.combine) { this.update_rect_coord(2); }            
-            else { if (this.can_move(this.player1.x,this.player1.y-1)) { this.player1.y--; this.change_position(0, 1, 2, 0); } }
+            else { if (this.can_move(this.player1.x,this.player1.y-1)) { this.player1.y--; this.change_position(0, 1, 2, 0); this.check_switch(this.player1.x, this.player1.y); } }
         });
         this.key_triggered_button("Down", [ "s" ], ()    => { 
             if (this.combine) { this.update_rect_coord(3); }            
-            else { if (this.can_move(this.player1.x,this.player1.y+1)) { this.player1.y++; this.change_position(0, -1, 3, 0); } }                     
+            else { if (this.can_move(this.player1.x,this.player1.y+1)) { this.player1.y++; this.change_position(0, -1, 3, 0); this.check_switch(this.player1.x, this.player1.y);} }                     
         });          
         this.key_triggered_button("Make Transparent", [ "q" ], () => { this.transparent1 = !this.transparent1; });
         this.new_line();
@@ -426,39 +462,50 @@ class Assignment_Three_Scene extends Scene_Component
         this.new_line();
         this.key_triggered_button( "Right",  [ "l" ], () => { 
             if (this.combine) { this.update_rect_coord(0); }
-            else { if (this.can_move(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); } }
+            else { if (this.can_move(this.player2.x+1,this.player2.y)) { this.player2.x++; this.change_position(1, 1, 0, 1); this.check_switch(this.player2.x, this.player2.y); } }
         });
         this.key_triggered_button( "Left", [ "j" ], ()   => { 
             if (this.combine) { this.update_rect_coord(1); }
-            else { if (this.can_move(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); } }
+            else { if (this.can_move(this.player2.x-1,this.player2.y)) { this.player2.x--; this.change_position(1, -1, 1, 1); this.check_switch(this.player2.x, this.player2.y);} }
         });
         this.key_triggered_button( "Up", [ "i" ], ()     => { 
             if (this.combine) { this.update_rect_coord(2); }
-            else { if (this.can_move(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); } }
+            else { if (this.can_move(this.player2.x,this.player2.y-1)) { this.player2.y--; this.change_position(0, 1, 2, 1); this.check_switch(this.player2.x, this.player2.y);} }
         });
         this.key_triggered_button("Down", [ "k" ], ()    => { 
             if (this.combine) { this.update_rect_coord(3); }
-            else { if (this.can_move(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); } }
+            else { if (this.can_move(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); this.check_switch(this.player2.x, this.player2.y);} }
         });
         this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
         this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
                 { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
+
     display( graphics_state )
       { graphics_state.lights = this.lights;
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
-        // Draw a floor by using multiple cubes. TODO: create an outline for each cube, see assignment 1.
+        
+        // Draw horizontal walls
         let horiz_wall_transform = Mat4.identity();
-        horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([-10,0,0]));
+        horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([-10,0,0]));               
         for (var i = 0; i < 1; i++) {
               horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([0,0,2]));
               for (var j = 0; j < 10; j++) {
                     horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([2,0,0]));                    
-                    if ( j === 1 || j === 8 || j === 4 || j === 5) {
-                        continue;
-                    }                    
-                    this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.760,0.413,0.370, 1) }));
+                    if ( j === 4 || j === 5) 
+                        continue;                    
+                    else if ( j === 1 ) {                        
+                        if (this.show_doors[1]) {
+                            this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.3,0.413,0.370, 1) }));
+                        }
+                    }
+                    else if (j === 8 ) {
+                        if (this.show_doors[0]) {
+                            this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.3,0.413,0.370, 1) }));
+                        }
+                    }
+                    else                                   
+                        this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: Color.of(0.760,0.413,0.370, 1) }));
               }
               horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([-20,0,0]));
         }
@@ -470,6 +517,8 @@ class Assignment_Three_Scene extends Scene_Component
             this.shapes.box.draw(graphics_state, )
         }
         */ 
+
+        // Draw a floor by using multiple cubes. TODO: create an outline for each cube, see assignment 1.
         let model_transform2 = Mat4.identity();
         model_transform2 = model_transform2.times(Mat4.translation([-10,-2,-10]));
         for (var i = 0; i < 10; i++) {
@@ -477,8 +526,13 @@ class Assignment_Three_Scene extends Scene_Component
               for (var j = 0; j < 10; j++) {
                     model_transform2 = model_transform2.times(Mat4.translation([2,0,0]));
                     if ( (j === 4 || j === 5) && (i > 2) )
-                        continue;                    
-                    this.shapes.box.draw(graphics_state, model_transform2, this.materials.ditto);
+                        continue;
+                    else if ( (i === 9 && j === 3) || (i === 1 && j === 8))
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.boldandbrash);
+                    else if ( i === 1 && j === 1)
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.brashandbold);
+                    else                      
+                        this.shapes.box.draw(graphics_state, model_transform2, this.materials.ditto);
               }
               model_transform2 = model_transform2.times(Mat4.translation([-20,0,0]));
         }
