@@ -14,7 +14,7 @@ Zachary Prong  UID: 304958784 prongzachary@gmail.com
 Introduction:
 
 CubeCity is a three dimensional platforming game in which two players, playing as cubes, work together in order to reach the goal at the end of each level. The game features custom-made levels which include obstacles such as barriers that must be activated by switches. In order to complete each level, the two players must link up to become a rectangular prism and reach the goal in order to conquer Cube City. 
-The game involves many different graphics features, including a toggle for transparency, which allows the user to see the level layout from any angle, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level. 
+The game involves many different graphics features, including a toggle for transparency, which allows the user to see the blocks that obstruct the player without having to move aside, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level (and detected collision with the player will cause the player to 'lose').
 
 
 Roles:
@@ -42,4 +42,4 @@ Collision (and collision detection):
 Projectile Physics: 
 	We implemented projectile physics in our game by having rocks that fall at a rapid rate in each level. The projectiles fall and strike a specific spot, and if the user steps on that spot as the projectile strikes it, the user will die and have to start over. The physics were implemented with assistance from the demos and slides provided by the TA team.
  
-Transparency: Transparency was implemented by 
+Transparency: Transparency was implemented as a toggle for our game, where the toggle was implemented with a keypress in the control panel. We wanted to have transparency in this game so that we could play with a graphics setting that did not affect much of the rest of the project, but still display what we have learned this quarter. The transparency was implemented with transparent versions of each texture-mapped cube, and the toggle changes the cube from the non-transparent one to the transparent one. The masks are handled by determining which cube is overlaying the other, and then drawing the one that is doing the overlapping first, and the one under that one second.
