@@ -1,11 +1,11 @@
-window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
-class Assignment_Three_Scene extends Simulation
+window.CubeCity = window.classes.CubeCity =
+class CubeCity extends Simulation
   { constructor( context, control_box )
       { super(   context, control_box );
       if( !context.globals.has_controls   )
         context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) );
-      if( !context.globals.has_info_table )
-        context.register_scene_component( new Global_Info_Table( context, control_box.parentElement.insertCell() ) );
+//       if( !context.globals.has_info_table )
+//         context.register_scene_component( new Global_Info_Table( context, control_box.parentElement.insertCell() ) );
         
       context.globals.graphics_state.    camera_transform = Mat4.translation([ 0,0,-50 ]);
       context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 1000 );
@@ -19,6 +19,7 @@ class Assignment_Three_Scene extends Simulation
                         }                       
          this.submit_shapes( context, shapes );
          this.level = 1;
+         this.beat_level = false;
          // JavaScript Player + Board information
          // 1 = valid, -1 = empty, 0 = obstacle, 
          // 2 = switch, 3 = finish, 4 = door
@@ -61,12 +62,20 @@ class Assignment_Three_Scene extends Simulation
              brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),                        
              ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", true) }),
              kirby: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/kirby.jpg", true) }),
-             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.5,0.5,0.5,1 ), { ambient: 0.5, specularity: 1}),
+             ground: context.get_instance( Phong_Shader ).material( Color.of( 1,0.25,0.15,1 ), { ambient: 0.5, specularity: 1}),
              outline: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/outline.png", true) }),             
+             skybox_top: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/top.png", true)} ),             
+             skybox_bot: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/bot.png", true)} ),             
+             skybox_back: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/back.png", true)} ),             
+             skybox_front: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/front.png", true)} ),             
+             skybox_left: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/left.png", true)} ),             
+             skybox_right: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/right.png", true)} ),             
            }
 
          this.lights = [ new Light( Vec.of(-10,10,10,1 ), Color.of( 0.5,1,1,1 ), 100000000 ) ];
          context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of(-10,20,25), Vec.of(0,0,0), Vec.of(0,1,0));
+
+         this.transparent_obj = 0;
 
          this.position = Mat4.identity(); // Holds the current transformation matrix of shape.
          this.position = this.position.times(Mat4.translation([-8,0,10]));
@@ -288,7 +297,7 @@ class Assignment_Three_Scene extends Simulation
      }     
   
      can_move(x, y) {
-       return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] >= 1);
+       return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] >= 1 && this.board[y][x] != 4);
      }  
 
      // Direction = [0,1,2,3] for [right, left, up, down], respectively    
@@ -407,13 +416,23 @@ class Assignment_Three_Scene extends Simulation
      // TODO: need to generalize this to all levels.
      open_door(x,y) {
          // Change door values to 1 in order to open
-         if ( x === 3 && y === 9) {
-             this.board[5][8] = 1;
-             this.show_doors[0] = false;
-         }
-         else if ( x === 8 && y === 1) {
-             this.board[5][1] = 1;
-             this.show_doors[1] = false;
+         switch (this.level) {
+             case 1:
+                 if ( x === 3 && y === 9) {
+                     this.board[5][8] = 1;
+                     this.show_doors[0] = false;
+                 } else if ( x === 8 && y === 1) {
+                     this.board[5][1] = 1;
+                     this.show_doors[1] = false;
+                 }
+                 break;
+             case 2:
+                 if ( x === 9 && y === 0) {
+                      this.board[5][6] = 1;
+                 } else if ( x === 3 && y === 9) {
+                      this.board[7][1] = 1;
+                 }
+                 break;
          }
      } 
 
@@ -421,8 +440,7 @@ class Assignment_Three_Scene extends Simulation
          // Position is finsih if value = 3
          if (this.is_standing && this.board[y][x] == 3) {
              console.log("Nice! Onto the next level");
-             this.level += 1;
-             this.change_map();
+             this.beat_level = true;
          }
      }
 
@@ -430,16 +448,48 @@ class Assignment_Three_Scene extends Simulation
          switch (this.level) {
              case 2:
                 this.board = [
-                  [ -1, -1, -1, -1, 1, 1, 1, 1, 1, 1],
-                  [ 1, -1, 1, 1, 1, 1, 1, 1, 1, 1],
-                  [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                  [ 1, 1, 1, 1, 1,-1, 1, 1, 1, -1],
-                  [ 1, 1, 1, 1, 1,-1, 1, 1, 1, -1],
-                  [ 1, 1, 1, 1, 1,-1, 1, -1, -1, -1],
-                  [ 1, 1, 1, 1, 1,-1, 1, 1, -1, -1],
-                  [ 1, 3, 1, 1, 1,-1, 1, 1, 1, -1],
+                  [-1,-1,-1,-1, 1, 1, 1, 1, 1, 2],
+                  [-1,-1, 1, 1, 1, 1, 1, 1, 1, 1],
+                  [-1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                  [ 1, 1, 1, 1, 1,-1, 1, 1, 1,-1],
+                  [ 1, 1, 1, 1, 1,-1, 1, 1, 1,-1],
+                  [-1,-1,-1,-1, 1,-1, 4,-1,-1,-1],
+                  [-1, 3,-1,-1, 1,-1, 1, 1,-1,-1],
+                  [-1, 4,-1, 1, 1,-1, 1, 1, 1,-1],
                   [ 1, 1, 1, 1, 1,-1, 1, 1, 1, 1],
                   [ 1, 1, 1, 2, 1,-1, 1, 1, 1, 1],
+                ];
+                this.player1.x = 0;
+                this.player1.y = 9;
+                this.cur_position = 'a';
+                this.coords1 = [-8,0,10]
+                this.position = Mat4.identity().times(Mat4.translation([-8,0,10]));
+                this.player2.x = 9;
+                this.player2.y = 9;
+                this.cur_position2 = 'a';
+                this.position2 = Mat4.identity().times(Mat4.translation([10,0,10]));
+                this.coords2 = [10,0,10];
+                this.combine = 0;
+                this.along_x = 0;
+                this.rect_position = Mat4.identity();
+                this.rect_cur_position = 'a';
+                this.rect_coords = [0,0,0];
+                this.x_aligned = false;
+                this.is_standing = false;        
+                this.show_doors = [true, true];
+                break;
+            case 3:
+                this.board = [
+                  [ 1, 1,-1, 1, 1, 0, 1, 1, 1,-1],
+                  [ 1, 1, 4, 1, 1, 1, 2, 1, 1,-1],
+                  [ 2, 1, 0, 1, 1, 0, 0, 0, 4,-1],
+                  [ 1, 1, 0, 1, 1, 0, 2, 1, 1, 1],
+                  [ 1, 1, 0, 1, 2,-1, 1, 1, 1,-1],
+                  [ 0, 4, 0, 4, 0, 0, 0, 0, 4,-1],
+                  [ 1, 1, 0, 1, 1, 1, 1,-1, 1, 1],
+                  [ 1, 2, 0, 1, 1, 1, 1,-1, 1, 1],
+                  [ 1, 1, 0, 1, 1, 1, 1,-1, 1, 1],
+                  [ 1, 1, 0, 1, 3, 1, 1,-1, 1, 1],
                 ];
                 this.player1.x = 0;
                 this.player1.y = 9;
@@ -465,6 +515,15 @@ class Assignment_Three_Scene extends Simulation
 
      make_control_panel()
        {
+         this.key_triggered_button( "Continue to next level after completing current level.", ["n"], () => {
+             if (this.beat_level) {
+                 this.level += 1;
+                 this.change_map();
+             }
+         });
+         this.new_line();
+         this.key_triggered_button( "Make all obstacles transparent.", ["b"], () => {this.transparent_obj = !this.transparent_obj;});
+         this.new_line();
          this.control_panel.innerHTML += "Player One Controls";
          this.new_line();
          this.key_triggered_button( "Right",  [ "d" ], () => {                         
@@ -518,10 +577,12 @@ class Assignment_Three_Scene extends Simulation
             break;
           case 2:
             this.bodies.push( new Body( this.shapes.ball, this.materials.ground, Vec.of( 1,1,1 ) )
-                .emplace( Mat4.translation( Vec.of(-10,0,0) ), Vec.of(1,0,0).times(3), 0) );
+                .emplace( Mat4.identity(), Vec.of(1,0,0).times(3), Math.random()) );
             this.bodies.push( new Body( this.shapes.ball, this.materials.ground, Vec.of( 1,1,1 ) )
-                .emplace( Mat4.translation( Vec.of(4,0,-10) ), Vec.of(0,0,1).times(3), 0) );
+                .emplace( Mat4.translation( Vec.of(4,0,0) ), Vec.of(0,0,1).times(3), Math.random()) );
             break;
+          case 3:
+            return; // add stuff here.
         }
       }
 
@@ -566,17 +627,23 @@ class Assignment_Three_Scene extends Simulation
             this.coords2 = [10,0,10];
          } else {
             switch(this.level) {
-              case 1: 
-                b.linear_velocity[1] += dt * -9.8;                      // Gravity on Earth, where 1 unit in world space = 1 meter.
+              case 1:
+                if (b.center[1] < 0 && b.linear_velocity[1] < 0) {
+                    b.linear_velocity[1] *= -.8;
+                    b.angular_velocity = -1;
+                }
+                b.linear_velocity[1] += dt * -9.8;
                 break;
-                
+              case 2:
+                if (b.center.norm() > 13) {
+                    b.linear_velocity[0] *= -1;
+                    b.linear_velocity[2] *= -1;
+                }
             }
          }      
       }                                          // Delete bodies that stop or stray too far away.
       if (this.level == 1 || this.level == 2)
             this.bodies = this.bodies.filter( b => b.center.norm() < 14);
-//       this.bodies = this.bodies.filter( b => b.center.norm() < 50 && b.linear_velocity.norm() > 2 );
-      
     }
     display( graphics_state )
        { 
@@ -592,6 +659,7 @@ class Assignment_Three_Scene extends Simulation
              this.shapes.box.draw(graphics_state, )
          }
          */
+         // Iterate through board, drawing based of the board's values.
          let model_transform = Mat4.identity();
          let horiz_wall_transform = Mat4.identity();
          model_transform = model_transform.times(Mat4.translation([-10,-2,-10]));
@@ -603,7 +671,8 @@ class Assignment_Three_Scene extends Simulation
                          if (this.board[i][j] === 0 || this.board[i][j] === 4) {
                              horiz_wall_transform = model_transform;
                              horiz_wall_transform = horiz_wall_transform.times(Mat4.translation([0,2,0]));
-                             this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( { color: (!this.board[i][j] ? Color.of(0.760,0.413,0.370, 1) : Color.of(0.3,0.413,0.370, 1)) }));
+                             this.shapes.box.draw(graphics_state, horiz_wall_transform, this.materials.phong.override( 
+                                    { color: (!this.board[i][j] ? Color.of(0.760,0.413,0.370, (this.transparent_obj ? 0.5 : 1)) : Color.of(0.3,0.413,0.370, (this.transparent_obj ? 0.5 : 1))) }));
                          }
                          this.shapes.box.draw(graphics_state, model_transform, this.materials.outline);
                      } else if (this.board[i][j] === 2) {
@@ -631,5 +700,36 @@ class Assignment_Three_Scene extends Simulation
                          this.transparent1 ? this.materials.boldandbrasht : this.materials.boldandbrash);
              }
          }
+
+         //Draw skybox.
+         let model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([0,0,-200]))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_front);
+         model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([0,0,200]))
+                                            .times(Mat4.rotation(Math.PI, Vec.of(0,1,0)))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_back);
+         model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([200,0,0]))
+                                            .times(Mat4.rotation(Math.PI/2, Vec.of(0,-1,0)))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_right);
+         model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([-200,0,0]))
+                                            .times(Mat4.rotation(Math.PI/2, Vec.of(0,1,0)))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_left);
+         model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([0,200,0]))
+                                            .times(Mat4.rotation(Math.PI/2, Vec.of(1,0,0)))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_top);
+         model_transform2 = Mat4.identity();
+         model_transform2 = model_transform2.times(Mat4.translation([0,-200,0]))
+                                            .times(Mat4.rotation(Math.PI/2, Vec.of(-1,0,0)))
+                                            .times(Mat4.scale([200,200,200]));
+         this.shapes.floor.draw(graphics_state, model_transform2, this.materials.skybox_bot);
        }
 }
