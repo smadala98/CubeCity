@@ -505,6 +505,15 @@ class Assignment_Three_Scene extends Simulation
              else { if (this.can_move(this.player2.x,this.player2.y+1)) { this.player2.y++; this.change_position(0, -1, 3, 1); this.check_switch(this.player2.x, this.player2.y);} }
          });
          this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
+         this.new_line();
+         this.new_line();
+
+         this.control_panel.innerHTML += "Entity Descriptions";
+         this.new_line();
+         this.new_line();
+         this.control_panel.innerHTML += "<img src='assets/ditto.png' style='width:30px;height:30px;''> Switch: Alters The Stage";
+         this.new_line();
+         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here Together";
        }
     update_state( dt )
     {
