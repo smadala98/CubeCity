@@ -62,6 +62,7 @@ class CubeCity extends Simulation
              brashandboldt: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,0.5 ), { ambient: 1, texture: context.get_instance("assets/brashandbold.jpg", true) }),                        
              ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", true) }),
              kirby: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/kirby.jpg", true) }),
+             pikachu: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/pikachu.jpg", true) }),
              ground: context.get_instance( Phong_Shader ).material( Color.of( 1,0.25,0.15,1 ), { ambient: 0.5, specularity: 1}),
              outline: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/outline.png", true) }),
              eccemono: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/eccemono.jpg", true) }),             
@@ -409,7 +410,7 @@ class CubeCity extends Simulation
     
      check_switch(x,y) {
          // Position is switch if value = 2
-         if (this.board[y][x] == 2) {
+         if (this.board[y][x] == 2 || this.board[y][x] == 5) {
              console.log("Stepped on switch");            
              this.open_door(x,y);
          }
@@ -472,6 +473,20 @@ class CubeCity extends Simulation
                      this.board[7][9] = 1;
                  }
                  break;
+               case 5:                
+                 if ( x === 2 && y === 9) {
+                      this.board[7][1] = 1;
+                 } else if ( x === 0 && y === 6) {
+                      this.board[2][8] = 1;
+                 } else if ( x === 1 && y === 0) {
+                      this.board[0][9] = 1;
+                 } else if ( ((x === 0 && y === 5) && ((this.player1.x === 0 && this.player1.y === 4) || this.player2.x === 0 && this.player2.y === 4))) { // Special Pair-required Switch
+                      console.log("Reached special coordinate");
+                      console.log(this.prism.x);
+                      console.log(this.prism.y);
+                      this.board[4][6] = 1;
+                 }
+                 break; 
              default:
                  break;
          }
@@ -583,6 +598,38 @@ class CubeCity extends Simulation
                 this.is_standing = false;        
                 this.show_doors = [true, true];
                 break;
+            case 5:                
+                this.board = [
+                  [-1, 2, 1, 1, 1, 1, 1, 1, 1, 4],
+                  [ 1, 1,-1,-1,-1,-1,-1,-1, 1, 1],
+                  [ 1, 1,-1,-1,-1,-1,-1,-1, 4, 1],
+                  [ 1,-1,-1, 1, 1, 1,-1, 1, 1, 1],
+                  [ 5,-1, 3, 1, 1, 1, 4, 1, 1, 1],
+                  [ 5,-1,-1, 1, 1, 1,-1, 1, 1, 1],
+                  [ 2,-1,-1,-1,-1,-1,-1,-1, 1, 1],
+                  [-1, 4, 1, 1,-1,-1,-1,-1, 1, 1],
+                  [ 1, 1,-1, 1, 1, 1, 1, 1, 1, 1],
+                  [-1, 1, 2,-1,-1, 1, 1, 1, 1,-1],
+                ];
+                this.player1.x = 0;
+                this.player1.y = 8;
+                this.cur_position = 'a';
+                this.coords1 = [-8,0,8]
+                this.position = Mat4.identity().times(Mat4.translation([-8,0,8]));
+                this.player2.x = 1;
+                this.player2.y = 9;
+                this.cur_position2 = 'a';
+                this.position2 = Mat4.identity().times(Mat4.translation([-6,0,10]));
+                this.coords2 = [-6,0,10];
+                this.combine = 0;
+                this.along_x = 0;
+                this.rect_position = Mat4.identity();
+                this.rect_cur_position = 'a';
+                this.rect_coords = [0,0,0];
+                this.x_aligned = false;
+                this.is_standing = false;        
+                this.show_doors = [true, true];
+                break;  
             default:
                 break;
          }
@@ -595,7 +642,7 @@ class CubeCity extends Simulation
                  this.level += 1;
                  console.log(this.level);
                  this.change_map();
-                 this.beat_level = false;
+                 this.beat_level = false;                 
              } else {
                  this.change_map();
              }
@@ -781,7 +828,9 @@ class CubeCity extends Simulation
                          this.shapes.box.draw(graphics_state, model_transform, this.materials.eccemono);
                      } else if (this.board[i][j] === 3) {
                          this.shapes.box.draw(graphics_state, model_transform, this.materials.kirby);
-                     }
+                     } else if (this.board[i][j] === 5) {
+                         this.shapes.box.draw(graphics_state, model_transform, this.materials.pikachu);
+                     }                     
                }
                model_transform = model_transform.times(Mat4.translation([-20,0,0]));
          }
