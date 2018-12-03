@@ -30,22 +30,30 @@ Objective:
 	Reach the end goal! The end is denoted by a Kirby icon, and can only be completed when both players (cubes) link up to become a rectangular prism. The level is completed when the rectangular prism is placed upright on the Goal (Kirby) icon. 
 
 Additional Features: 
+
 	Switches: The switches are noted by Eccemono, a buff small figure image. The switches will unlock new paths in each level to allow you to proceed!
+	
 	Meteors: Meteors fly onto the stage! Avoid these as they will kill you and you have to start from square one if you get hit
 	
 	
 Buttons: 
 
 Player 1 Controls:
+
 	Movement: w/a/s/d: up/left/down/right (these are also the controls for the combined rectangular prism)
+	
 	Transparency: q
 	
 Player 2 Controls: 
+
 	Movement: i/j/k/l: up/left/down/right
+	
 	Transparency: u
 	
 General Controls: 
+
 	n : make all obstacles transparent
+	
 	b : Go to the next level after completion / reset level if incomplete
 
 
