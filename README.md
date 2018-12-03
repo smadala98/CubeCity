@@ -1,7 +1,7 @@
 # term-project-group-46
 ## This is a README Markdown file containing all of the information about CubeCity, a 3D animated game created in WebGL for the final term project of CS 174A at UCLA under the instruction of Scott Friedman.
 
-##CubeCity 
+## CubeCity 
 
 by 
 Ben Huang UID: 204625583  benthuang@g.ucla.edu
