@@ -487,6 +487,38 @@ class CubeCity extends Simulation
 
      change_map() {
          switch (this.level) {
+             case 1:
+                 this.board = [
+                   [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                   [ 1, 3, 1, 1, 1, 1, 1, 1, 2, 1],
+                   [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                   [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+                   [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+                   [ 0, 4, 0, 0,-1,-1, 0, 0, 4, 0],
+                   [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+                   [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+                   [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
+                   [ 1, 1, 1, 2,-1,-1, 1, 1, 1, 1],
+                 ];
+                this.player1.x = 0;
+                this.player1.y = 9;
+                this.cur_position = 'a';
+                this.coords1 = [-8,0,10]
+                this.position = Mat4.identity().times(Mat4.translation([-8,0,10]));
+                this.player2.x = 9;
+                this.player2.y = 9;
+                this.cur_position2 = 'a';
+                this.position2 = Mat4.identity().times(Mat4.translation([10,0,10]));
+                this.coords2 = [10,0,10];
+                this.combine = 0;
+                this.along_x = 0;
+                this.rect_position = Mat4.identity();
+                this.rect_cur_position = 'a';
+                this.rect_coords = [0,0,0];
+                this.x_aligned = false;
+                this.is_standing = false;        
+                this.show_doors = [true, true];
+                break;
              case 2:
                 this.board = [
                   [-1,-1,-1,-1, 1, 1, 1, 1, 1, 2],
@@ -584,6 +616,7 @@ class CubeCity extends Simulation
                 this.show_doors = [true, true];
                 break;
             default:
+                console.log("H");
                 break;
          }
      }
@@ -597,6 +630,7 @@ class CubeCity extends Simulation
                  this.change_map();
                  this.beat_level = false;
              } else {
+                 console.log("Hi");
                  this.change_map();
              }
          });
