@@ -433,6 +433,19 @@ class CubeCity extends Simulation
                       this.board[7][1] = 1;
                  }
                  break;
+             case 3:
+                 if ( x === 0 && y === 2) {
+                     this.board[2][8] = 1;
+                 } else if ( x === 1 && y === 7) {
+                     this.board[5][8] = 1;
+                 } else if ( x === 4 && y === 4) {
+                     this.board[1][2] = 1;
+                 } else if ( x === 6 && y === 1) {
+                     this.board[5][3] = 1;
+                 } else if ( x === 6 && y === 3) {
+                     this.board[5][1] = 1;
+                 }
+                 break;
          }
      } 
 
@@ -482,14 +495,14 @@ class CubeCity extends Simulation
                 this.board = [
                   [ 1, 1,-1, 1, 1, 0, 1, 1, 1,-1],
                   [ 1, 1, 4, 1, 1, 1, 2, 1, 1,-1],
-                  [ 2, 1, 0, 1, 1, 0, 0, 0, 4,-1],
-                  [ 1, 1, 0, 1, 1, 0, 2, 1, 1, 1],
-                  [ 1, 1, 0, 1, 2,-1, 1, 1, 1,-1],
-                  [ 0, 4, 0, 4, 0, 0, 0, 0, 4,-1],
-                  [ 1, 1, 0, 1, 1, 1, 1,-1, 1, 1],
-                  [ 1, 2, 0, 1, 1, 1, 1,-1, 1, 1],
-                  [ 1, 1, 0, 1, 1, 1, 1,-1, 1, 1],
-                  [ 1, 1, 0, 1, 3, 1, 1,-1, 1, 1],
+                  [ 2, 1,-1, 1, 1, 0, 0, 0, 4,-1],
+                  [ 1, 1,-1, 1, 1, 0, 2, 1, 1, 1],
+                  [ 1, 1,-1, 1, 2, 0, 1, 1, 1,-1],
+                  [ 0, 4,-1, 4, 0, 0, 0, 0, 4,-1],
+                  [ 1, 1,-1, 1, 1, 1, 1,-1, 1,-1],
+                  [ 1, 2,-1, 1, 1, 1, 1,-1, 1, 1],
+                  [ 1, 1,-1, 1, 1, 1, 1,-1, 1, 1],
+                  [ 1, 1,-1, 1, 3, 1, 1,-1, 1, 1],
                 ];
                 this.player1.x = 0;
                 this.player1.y = 9;
@@ -515,9 +528,12 @@ class CubeCity extends Simulation
 
      make_control_panel()
        {
-         this.key_triggered_button( "Continue to next level after completing current level.", ["n"], () => {
+         this.key_triggered_button( "Go to next level (after beating level) or reset level.", ["n"], () => {
              if (this.beat_level) {
                  this.level += 1;
+                 this.change_map();
+                 this.beat_level = false;
+             } else {
                  this.change_map();
              }
          });
@@ -591,7 +607,9 @@ class CubeCity extends Simulation
                 .emplace( Mat4.translation( Vec.of(4,0,0) ), Vec.of(0,0,1).times(3), Math.random()) );
             break;
           case 3:
-            return; // add stuff here.
+            this.bodies.push( new Body( this.shapes.ball, this.materials.ground, Vec.of( 1,1,1 ) )
+                .emplace( Mat4.translation( Vec.of(-10,10,-10)), Vec.of(1,1,1).times(3), 0));
+            break;
         }
       }
 
@@ -634,6 +652,8 @@ class CubeCity extends Simulation
             this.position2 = Mat4.identity().times(Mat4.translation([10,0,10]));
             this.cur_position2 = 'a';
             this.coords2 = [10,0,10];
+         } else if (this.beat_level) {
+            this.bodies = [];
          } else {
             switch(this.level) {
               case 1:
@@ -648,11 +668,23 @@ class CubeCity extends Simulation
                     b.linear_velocity[0] *= -1;
                     b.linear_velocity[2] *= -1;
                 }
+                break;
+              case 3:
+                if (b.center[1] < 0 && b.linear_velocity[1] < 0) {
+                    b.linear_velocity[1] *= -.8;
+                    b.angular_velocity = Math.random();                   
+                } else {
+                    b.linear_velocity[1] += dt * -9.8;
+                }
+                break;
             }
          }      
       }                                          // Delete bodies that stop or stray too far away.
-      if (this.level == 1 || this.level == 2)
-            this.bodies = this.bodies.filter( b => b.center.norm() < 14);
+      if (this.level === 1 || this.level === 2) {
+          this.bodies = this.bodies.filter( b => b.center.norm() < 14);
+      } else if (this.level === 3) {
+          this.bodies = this.bodies.filter( b=> b.center.norm() < 18);  
+      }
     }
     display( graphics_state )
        { 
@@ -660,14 +692,6 @@ class CubeCity extends Simulation
          graphics_state.lights = this.lights;
          const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-         /*
-         let vert_wall_transform = Mat4.identity();
-         vert_wall_transform = vert_wall_transform.times(Mat4.translations([-10,0]));
-         for (var i = 0; i < 1; i++) {
-             vert_wall_transform = vert_wall_transform.times(Mat4.translation([0,0,2]));
-             this.shapes.box.draw(graphics_state, )
-         }
-         */
          // Iterate through board, drawing based of the board's values.
          let model_transform = Mat4.identity();
          let horiz_wall_transform = Mat4.identity();
