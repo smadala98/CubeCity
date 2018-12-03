@@ -300,11 +300,12 @@ class CubeCity extends Simulation
            this.rect_cur_position = this.next_positions_dict[this.rect_cur_position][index];
      }     
   
+     // Makes sure that objects can't move into obstacles/doors.
      can_move(x, y) {
        return (y>=0) && (y<this.board.length) && (x >= 0) && (x < this.board[y].length) && (this.board[y][x] >= 1 && this.board[y][x] != 4);
      }  
 
-     // Direction = [0,1,2,3] for [right, left, up, down], respectively    
+     // Direction = [0,1,2,3] for [right, left, up, down], respectively, allows us to check if prism would not fit in the next move position.    
      update_rect_coord(direction) {          
          // Right      
          if (direction === 0) {                   
@@ -416,8 +417,7 @@ class CubeCity extends Simulation
          }
      }
     
-     // A Map of all switches for level 1
-     // TODO: need to generalize this to all levels.
+     // A Map of all switches for each level, indexed by this.level.
      open_door(x,y) {
          // Change door values to 1 in order to open
          switch (this.level) {
@@ -480,7 +480,8 @@ class CubeCity extends Simulation
                       this.board[2][8] = 1;
                  } else if ( x === 1 && y === 0) {
                       this.board[0][9] = 1;
-                 } else if ( ((x === 0 && y === 5) && ((this.player1.x === 0 && this.player1.y === 4) || this.player2.x === 0 && this.player2.y === 4))) { // Special Pair-required Switch
+                 } else if ( ((x === 0 && y === 4) && ((this.player1.x === 0 && this.player1.y === 5) || this.player2.x === 0 && this.player2.y === 5)) 
+                                    || ((x === 0 && y === 5) && ((this.player1.x === 0 && this.player1.y === 4) || this.player2.x === 0 && this.player2.y === 4))) { // Special Pair-required Switch
                       console.log("Reached special coordinate");
                       console.log(this.prism.x);
                       console.log(this.prism.y);
@@ -503,6 +504,7 @@ class CubeCity extends Simulation
      change_map() {
          switch (this.level) {
              case 1:
+                 // Restores board and other variables and objects to constructor state for level 1.
                  this.board = [
                    [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                    [ 1, 3, 1, 1, 1, 1, 1, 1, 2, 1],
@@ -515,6 +517,8 @@ class CubeCity extends Simulation
                    [ 1, 1, 1, 1,-1,-1, 1, 1, 1, 1],
                    [ 1, 1, 1, 2,-1,-1, 1, 1, 1, 1],
                  ];
+                // Puts everything back where it's supposed to go, and changes values accordingly.
+                // Could have put it all in a function, but in case other values want to be set, leave alone.
                 this.player1.x = 0;
                 this.player1.y = 9;
                 this.cur_position = 'a';
@@ -535,6 +539,7 @@ class CubeCity extends Simulation
                 this.show_doors = [true, true];
                 break;
              case 2:
+                // Makes new/restores level 2 board, same idea as above.
                 this.board = [
                   [-1,-1,-1,-1, 1, 1, 1, 1, 1, 2],
                   [-1,-1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -663,7 +668,6 @@ class CubeCity extends Simulation
                 this.show_doors = [true, true];
                 break;  
             default:
-                console.log("H");
                 break;
          }
      }
@@ -677,7 +681,6 @@ class CubeCity extends Simulation
                  this.change_map();
                  this.beat_level = false;                 
              } else {
-                 console.log("Hi");
                  this.change_map();
              }
          });
@@ -725,14 +728,16 @@ class CubeCity extends Simulation
          });
          this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
          this.new_line();
-         this.new_line();
+          this.new_line();
 
          this.control_panel.innerHTML += "Entity Descriptions";
          this.new_line();
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/eccemono.jpg' style='width:30px;height:30px;''> Switch: Alters The Stage";
+         this.control_panel.innerHTML += "<img src='assets/eccemono.jpg' style='width:30px;height:30px;''> Switch: Land On It To Alter Stage";
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here As a Combined Prism, Standing Up";
+         this.control_panel.innerHTML += "<img src='assets/pikachu.jpg' style='width:30px;height:30px;''> Paired Switch: Land On Together To Alter Stage";
+         this.new_line();
+         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here As A Combined Prism, Standing Up";
        }
     update_state( dt )
     {
