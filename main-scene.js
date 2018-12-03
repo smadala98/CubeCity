@@ -728,16 +728,20 @@ class CubeCity extends Simulation
          });
          this.key_triggered_button("Make Transparent", [ "u" ], () => { this.transparent2 = !this.transparent2; });
          this.new_line();
-          this.new_line();
 
          this.control_panel.innerHTML += "Entity Descriptions";
          this.new_line();
+         this.control_panel.innerHTML += "<img src='assets/eccemono.jpg' style='width:25px;height:25px;''> Switch: Opens A Door";
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/eccemono.jpg' style='width:30px;height:30px;''> Switch: Land On It To Alter Stage";
+         this.control_panel.innerHTML += "<img src='assets/pikachu.jpg' style='width:25px;height:25px;''><img src='assets/pikachu.jpg' style='width:25px;height:25px;''> Paired Switch: Land On Together To Open A Door";
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/pikachu.jpg' style='width:30px;height:30px;''> Paired Switch: Land On Together To Alter Stage";
+         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:25px;height:25px;''> Finish: Land Here As A Combined Prism, Standing Up";
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here As A Combined Prism, Standing Up";
+         this.control_panel.innerHTML += "<svg width='25' height='25'><rect width='25' height='25' style='fill:rgb(193.8,105.315,94.35)' /></svg> Brown Block: Wall"          
+         this.new_line();
+         this.control_panel.innerHTML += "<svg width='25' height='25'><rect width='25' height='25' style='fill:rgb(76.5,105.315,94.35)' /></svg> Dark Green Block: Door"
+         this.new_line();
+         this.control_panel.innerHTML += "<svg width='25' height='25'><rect width='25' height='25' style='fill:rgb(255,105.315,94.35)' /></svg> Red Projectile: Dangerous! Being Hit Will Reset Block"
        }
     update_state( dt )
     {
