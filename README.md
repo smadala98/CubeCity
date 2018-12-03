@@ -17,7 +17,7 @@ Zachary Prong  UID: 304958784 prongzachary@gmail.com
 # Introduction:
 
 CubeCity is a three dimensional platforming game in which two players, playing as cubes, work together in order to reach the goal at the end of each level. The game features custom-made levels which include obstacles such as barriers that can be opened by switches. In order to complete each level, the two players must link up to become a rectangular prism and reach the goal in order to conquer Cube City. 
-The game involves many different graphics features, including a toggle for transparency, which allows the user to see the blocks that obstruct the player without having to move aside, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level (and detected collision with the player will cause the player to 'lose').
+The game involves many different graphics features, including a toggle for transparency, which allows the user to see the blocks that obstruct the player without having to move aside, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level (and detected collision with the player will cause the player to 'lose'). There are some challenging puzzles included in each level, which includes a switch system that will require you to unlock doors for each player to proceed.
 
 # How to run the program:
 
@@ -34,14 +34,16 @@ Enjoy!
 Objective: 
 	Reach the end goal! The end is denoted by a Kirby icon, and can only be completed when both players (cubes) link up to become a rectangular prism. The level is completed when the rectangular prism is placed upright on the Goal (Kirby) icon. 
 
-Additional Features: 
+Blocks Types:
 
-	Switches: The switches are noted by Eccemono, a buff small figure image. The switches will unlock new paths in each level to allow you to proceed!
+	Kirby: Finish Block. Land here as a team to win!
+	Ecce Mono: Switch- Opens doors that obstruct you from the goal
+	Pikachu: Double Switch- Form a combined block and land here to activate it, opening a door.
+	Brown Block: Wall
+	Dark Green Block: Door
+	Red Projectile: Meteor! A dangerous meteor that will reset the block it hits if it comes into contact
 	
-	Meteors: Meteors fly onto the stage! Avoid these as they will kill you and you have to start from square one if you get hit
-	
-	
-Buttons: 
+Controls: 
 
 Player 1 Controls:
 
@@ -85,6 +87,6 @@ Collision (and collision detection):
 	The blocks in our game have collision detection, so that each block cannot pass through another. The player blocks additionally detect for collision from outside projectiles, which can 'kill' the player if they collide. 
 
 Projectile Physics: 
-	We implemented projectile physics in our game by having rocks that fall at a rapid rate in each level. The projectiles fall and strike a specific spot, and if the user steps on that spot as the projectile strikes it, the user will die and have to start over. The physics were implemented with assistance from the demos and slides provided by the TA team.
+	We implemented projectile physics in our game by having rocks that fall at a rapid rate in each level. The projectiles fall and strike a specific spot, and if the user steps on that spot as the projectile strikes it, the user will die and have to start over. The physics were implemented with assistance from the demos and slides provided by the TA team. 
  
 Transparency: Transparency was implemented as a toggle for our game, where the toggle was implemented with a keypress in the control panel. We wanted to have transparency in this game so that we could play with a graphics setting that did not affect much of the rest of the project, but still display what we have learned this quarter. The transparency was implemented with transparent versions of each texture-mapped cube, and the toggle changes the cube from the non-transparent one to the transparent one. The masks are handled by determining which cube is overlaying the other, and then drawing the one that is doing the overlapping first, and the one under that one second.
