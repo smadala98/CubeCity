@@ -10,12 +10,12 @@ Subhodh Madala UID: 804766612 smadala98@gmail.com
 Zachary Prong  UID: 304958784 prongzachary@gmail.com
 
 
-#Introduction:
+# Introduction:
 
 CubeCity is a three dimensional platforming game in which two players, playing as cubes, work together in order to reach the goal at the end of each level. The game features custom-made levels which include obstacles such as barriers that must be activated by switches. In order to complete each level, the two players must link up to become a rectangular prism and reach the goal in order to conquer Cube City. 
 The game involves many different graphics features, including a toggle for transparency, which allows the user to see the blocks that obstruct the player without having to move aside, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level (and detected collision with the player will cause the player to 'lose').
 
-#How to run the program:
+# How to run the program:
 
 Download the .zip file and extract the contents
 On Windows, run the Host.bat file, provided within the program files. 
@@ -23,11 +23,17 @@ Run the program using localhost:8000 on Google Chrome web browser
 Enjoy!
 
 
-#How to Play: 
+# How to Play: 
+
 
 Objective: 
 	Reach the end goal! The end is denoted by a Kirby icon, and can only be completed when both players (cubes) link up to become a rectangular prism. The level is completed when the rectangular prism is placed upright on the Goal (Kirby) icon. 
 
+Additional Features: 
+	Switches: The switches are noted by Eccemono, a buff small figure image. The switches will unlock new paths in each level to allow you to proceed!
+	Meteors: Meteors fly onto the stage! Avoid these as they will kill you and you have to start from square one if you get hit
+	
+	
 Buttons: 
 
 Player 1 Controls:
@@ -43,7 +49,7 @@ General Controls:
 	b : Go to the next level after completion / reset level if incomplete
 
 
-#Roles:
+# Roles:
 
 Ben: 
 	My main role was to help code and display the levels that we have in the game. This involved learning how to create and display the maps, including the walls/obstacles that obstruct the players, and laying out the levels such that they can be completed without getting stuck. One of the biggest obstacles I faced was approaching one of our advanced topics, shadows, because we could not figure out how to get the masking to work and create a reliable shadow with our resources. We decided to rely on the use of the tiny graphics library, which made a lot of things simple, but the shadows feature became harder to implement, so we decided not to implement it and decided to try something else (projectile physics).
@@ -60,7 +66,7 @@ Zachary:
 
 
 
-#Advanced Features:
+# Advanced Features:
 
 Collision (and collision detection): 
 	The blocks in our game have collision detection, so that each block cannot pass through another. The player blocks additionally detect for collision from outside projectiles, which can 'kill' the player if they collide. 
