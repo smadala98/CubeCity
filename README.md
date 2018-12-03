@@ -4,9 +4,13 @@
 ## CubeCity 
 
 by 
+
 Ben Huang UID: 204625583  benthuang@g.ucla.edu
+
 Anderson Ju  UID: 504606314 anderson.ju9797@gmail.com
+
 Subhodh Madala UID: 804766612 smadala98@gmail.com
+
 Zachary Prong  UID: 304958784 prongzachary@gmail.com
 
 
