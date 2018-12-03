@@ -21,10 +21,10 @@ The game involves many different graphics features, including a toggle for trans
 
 # How to run the program:
 
-Download the .zip file and extract the contents.
-On Windows, run the Host.bat file, provided within the program files.
-On Mac, run the Host.command file, provided within the program files.
-Run the program using localhost:8000 on Google Chrome web browser.
+Download the .zip file and extract the contents
+On Windows, run the Host.bat file, provided within the program files
+On Mac, run the Host.command file, provided within the program files
+Run the program using localhost:8000 on Google Chrome web browser
 Enjoy!
 
 
