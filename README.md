@@ -34,14 +34,16 @@ Enjoy!
 Objective: 
 	Reach the end goal! The end is denoted by a Kirby icon, and can only be completed when both players (cubes) link up to become a rectangular prism. The level is completed when the rectangular prism is placed upright on the Goal (Kirby) icon. 
 
-Additional Features: 
+Blocks Types:
 
-	Switches: The switches are noted by Eccemono, a buff small figure image. The switches will unlock new paths in each level to allow you to proceed!
+	Kirby: Finish Block. Land here as a team to win!
+	Ecce Mono: Switch: Opens doors that obstruct you from the goal
+	Pikachu: Double Switch: Form a combined block and land here to activate it, opening a door.
+	Brown Block: Wall
+	Dark Green Block: Door
+	Red Projectile: Meteor! A dangerous meteor that will reset the block it hits if it comes into contact
 	
-	Meteors: Meteors fly onto the stage! Avoid these as they will kill you and you have to start from square one if you get hit
-	
-	
-Buttons: 
+Controls: 
 
 Player 1 Controls:
 
