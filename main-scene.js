@@ -63,7 +63,8 @@ class CubeCity extends Simulation
              ditto: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/ditto.png", true) }),
              kirby: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/kirby.jpg", true) }),
              ground: context.get_instance( Phong_Shader ).material( Color.of( 1,0.25,0.15,1 ), { ambient: 0.5, specularity: 1}),
-             outline: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/outline.png", true) }),             
+             outline: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/outline.png", true) }),
+             eccemono: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/eccemono.jpg", true) }),             
              skybox_top: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/top.png", true)} ),             
              skybox_bot: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/bot.png", true)} ),             
              skybox_back: context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1 ), { ambient: 1, texture: context.get_instance("assets/skybox/back.png", true)} ),             
@@ -270,6 +271,8 @@ class CubeCity extends Simulation
                                  this.coords2[2] += 2;
                          }
                          break;
+                 default:
+                         break;
            }
            // Check if our cubes are adjacent, so that we can then combine our blocks into the 2x1 prism.
            this.check_if_adjacent();
@@ -446,6 +449,31 @@ class CubeCity extends Simulation
                      this.board[5][1] = 1;
                  }
                  break;
+             case 4:
+                 if ( x === 0 && y === 0) {
+                     this.board[3][8] = 1;
+                 } else if ( x === 2 && y === 0) {
+                     this.board[1][7] = 1;
+                 } else if ( x === 8 && y === 0) {
+                     this.board[1][3] = 1;
+                 } else if ( x === 3 && y === 3) {
+                     this.board[5][9] = 1;
+                 } else if ( x === 1 && y === 6) {
+                     this.board[5][6] = 1;
+                 } else if ( x === 5 && y === 6) {
+                     this.board[4][0] = 1;
+                 } else if ( x === 8 && y === 6) {
+                     this.board[6][3] = 1;
+                 } else if ( x === 1 && y === 9) {
+                     this.board[9][2] = 1;
+                 } else if ( x === 5 && y === 9) {
+                     this.board[8][6] = 1;
+                 } else if ( x === 8 && y === 9) {
+                     this.board[7][9] = 1;
+                 }
+                 break;
+             default:
+                 break;
          }
      } 
 
@@ -523,6 +551,40 @@ class CubeCity extends Simulation
                 this.is_standing = false;        
                 this.show_doors = [true, true];
                 break;
+            case 4:
+                this.board = [
+                  [ 2, 1, 2, 0, 3, 1, 1, 0, 2, 0],
+                  [ 1, 1, 1, 4, 1, 1, 1, 4, 1, 1],
+                  [ 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
+                  [ 1, 1, 0, 2, 0, 0, 0, 1, 4, 0],
+                  [ 4, 0, 0, 1, 0, 0, 1, 1, 0, 1],
+                  [ 1, 1, 0, 1, 0, 1, 4, 1, 0, 4],
+                  [ 1, 2, 0, 4, 0, 2, 1, 0, 2, 1],
+                  [ 1, 1, 0, 1, 0, 1, 1, 0, 1, 4],
+                  [ 1, 0, 0, 1, 0, 0, 4, 0, 0, 1],
+                  [ 1, 2, 4, 1, 0, 2, 1, 1, 2, 1],
+                ];
+                this.player1.x = 0;
+                this.player1.y = 9;
+                this.cur_position = 'a';
+                this.coords1 = [-8,0,10]
+                this.position = Mat4.identity().times(Mat4.translation([-8,0,10]));
+                this.player2.x = 9;
+                this.player2.y = 9;
+                this.cur_position2 = 'a';
+                this.position2 = Mat4.identity().times(Mat4.translation([10,0,10]));
+                this.coords2 = [10,0,10];
+                this.combine = 0;
+                this.along_x = 0;
+                this.rect_position = Mat4.identity();
+                this.rect_cur_position = 'a';
+                this.rect_coords = [0,0,0];
+                this.x_aligned = false;
+                this.is_standing = false;        
+                this.show_doors = [true, true];
+                break;
+            default:
+                break;
          }
      }
 
@@ -531,6 +593,7 @@ class CubeCity extends Simulation
          this.key_triggered_button( "Go to next level (after beating level) or reset level.", ["n"], () => {
              if (this.beat_level) {
                  this.level += 1;
+                 console.log(this.level);
                  this.change_map();
                  this.beat_level = false;
              } else {
@@ -586,9 +649,9 @@ class CubeCity extends Simulation
          this.control_panel.innerHTML += "Entity Descriptions";
          this.new_line();
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/ditto.png' style='width:30px;height:30px;''> Switch: Alters The Stage";
+         this.control_panel.innerHTML += "<img src='assets/eccemono.jpg' style='width:30px;height:30px;''> Switch: Alters The Stage";
          this.new_line();
-         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here Together";
+         this.control_panel.innerHTML += "<img src='assets/kirby.jpg' style='width:30px;height:30px;''> Finish: Land Here As a Combined Prism, Standing Up";
        }
     update_state( dt )
     {
@@ -610,6 +673,10 @@ class CubeCity extends Simulation
             this.bodies.push( new Body( this.shapes.ball, this.materials.ground, Vec.of( 1,1,1 ) )
                 .emplace( Mat4.translation( Vec.of(-10,10,-10)), Vec.of(1,1,1).times(3), 0));
             break;
+          case 4:
+            return;
+          default:
+            return;
         }
       }
 
@@ -677,6 +744,8 @@ class CubeCity extends Simulation
                     b.linear_velocity[1] += dt * -9.8;
                 }
                 break;
+              default:
+                break;
             }
          }      
       }                                          // Delete bodies that stop or stray too far away.
@@ -709,7 +778,7 @@ class CubeCity extends Simulation
                          }
                          this.shapes.box.draw(graphics_state, model_transform, this.materials.outline);
                      } else if (this.board[i][j] === 2) {
-                         this.shapes.box.draw(graphics_state, model_transform, this.materials.ditto);
+                         this.shapes.box.draw(graphics_state, model_transform, this.materials.eccemono);
                      } else if (this.board[i][j] === 3) {
                          this.shapes.box.draw(graphics_state, model_transform, this.materials.kirby);
                      }
