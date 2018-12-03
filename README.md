@@ -16,14 +16,15 @@ Zachary Prong  UID: 304958784 prongzachary@gmail.com
 
 # Introduction:
 
-CubeCity is a three dimensional platforming game in which two players, playing as cubes, work together in order to reach the goal at the end of each level. The game features custom-made levels which include obstacles such as barriers that must be activated by switches. In order to complete each level, the two players must link up to become a rectangular prism and reach the goal in order to conquer Cube City. 
+CubeCity is a three dimensional platforming game in which two players, playing as cubes, work together in order to reach the goal at the end of each level. The game features custom-made levels which include obstacles such as barriers that can be opened by switches. In order to complete each level, the two players must link up to become a rectangular prism and reach the goal in order to conquer Cube City. 
 The game involves many different graphics features, including a toggle for transparency, which allows the user to see the blocks that obstruct the player without having to move aside, unit collision, which allows implementation of walls to allow for more diverse puzzle design, and projectile physics, which provides challenging obstacles to avoid in each level (and detected collision with the player will cause the player to 'lose').
 
 # How to run the program:
 
-Download the .zip file and extract the contents
-On Windows, run the Host.bat file, provided within the program files. 
-Run the program using localhost:8000 on Google Chrome web browser
+Download the .zip file and extract the contents.
+On Windows, run the Host.bat file, provided within the program files.
+On Mac, run the Host.command file, provided within the program files.
+Run the program using localhost:8000 on Google Chrome web browser.
 Enjoy!
 
 
@@ -56,9 +57,9 @@ Player 2 Controls:
 	
 General Controls: 
 
-	n : make all obstacles transparent
+	n : Go to the next level after completion / reset level if incomplete
 	
-	b : Go to the next level after completion / reset level if incomplete
+	b : make all obstacles transparent
 
 
 # Roles:
